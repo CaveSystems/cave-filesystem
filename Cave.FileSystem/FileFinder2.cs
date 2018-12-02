@@ -56,7 +56,7 @@ namespace Cave.FileSystem
     /// <summary>
     /// Provides an asynchronous file finder
     /// </summary>
-    public sealed class FileFinder : IDisposable
+    public sealed class FileFinder2 : IDisposable
     {
         string m_BaseDirectory;
         string m_FileMask;
@@ -210,7 +210,7 @@ namespace Cave.FileSystem
         /// </summary>
         /// <param name="baseDirectory">the base directory the search starts at</param>
         /// <param name="comparer">the additionally used comparers</param>
-        public FileFinder(string baseDirectory, params IFileFinderComparer[] comparer)
+        public FileFinder2(string baseDirectory, params IFileFinderComparer[] comparer)
         {
             m_Start(baseDirectory, "*", "*", comparer);
         }
@@ -222,7 +222,7 @@ namespace Cave.FileSystem
         /// <param name="directoryMask"></param>
         /// <param name="fileMask"></param>
         /// <param name="comparer"></param>
-        public FileFinder(string baseDirectory, string directoryMask, string fileMask, params IFileFinderComparer[] comparer)
+        public FileFinder2(string baseDirectory, string directoryMask, string fileMask, params IFileFinderComparer[] comparer)
         {
             m_Start(baseDirectory, directoryMask, fileMask, comparer);
         }
