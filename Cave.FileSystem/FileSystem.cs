@@ -1,57 +1,7 @@
-﻿#region CopyRight 2018
-/*
-    Copyright (c) 2003-2018 Andreas Rohleder (andreas@rohleder.cc)
-    All rights reserved
-*/
-#endregion
-#region License LGPL-3
-/*
-    This program/library/sourcecode is free software; you can redistribute it
-    and/or modify it under the terms of the GNU Lesser General Public License
-    version 3 as published by the Free Software Foundation subsequent called
-    the License.
-
-    You may not use this program/library/sourcecode except in compliance
-    with the License. The License is included in the LICENSE file
-    found at the installation directory or the distribution package.
-
-    Permission is hereby granted, free of charge, to any person obtaining
-    a copy of this software and associated documentation files (the
-    "Software"), to deal in the Software without restriction, including
-    without limitation the rights to use, copy, modify, merge, publish,
-    distribute, sublicense, and/or sell copies of the Software, and to
-    permit persons to whom the Software is furnished to do so, subject to
-    the following conditions:
-
-    The above copyright notice and this permission notice shall be included
-    in all copies or substantial portions of the Software.
-
-    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-    EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-    MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-    NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
-    LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
-    OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
-    WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*/
-#endregion
-#region Authors & Contributors
-/*
-   Author:
-     Andreas Rohleder <andreas@rohleder.cc>
-
-   Contributors:
- */
-#endregion
-
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
-using System.Reflection;
-using Cave.Text;
-using Cave.IO;
 using System.Text;
 using System.Text.RegularExpressions;
 
@@ -77,7 +27,11 @@ namespace Cave.FileSystem
                 {
                     case '*':
                     {
-                        if (lastWasWildcard) continue;
+                        if (lastWasWildcard)
+                        {
+                            continue;
+                        }
+
                         lastWasWildcard = true;
                         sb.Append(".*");
                         continue;
@@ -110,7 +64,7 @@ namespace Cave.FileSystem
                 lastWasWildcard = false;
             }
             sb.Append('$');
-            var s = sb.ToString();
+            string s = sb.ToString();
             return new Regex(s, RegexOptions.IgnoreCase);
         }
 
@@ -127,12 +81,12 @@ namespace Cave.FileSystem
         /// <summary>
         /// Provides all platform path separator chars
         /// </summary>
-        public static char[] PathSeparatorChars { get { return new char[] { '/', '\\' }; } }
+        public static char[] PathSeparatorChars => new char[] { '/', '\\' };
 
         /// <summary>
         /// Returns invalid chars (in range 32..127) invalid for platform independent paths
         /// </summary>
-        public static char[] InvalidChars { get { return new char[] { '"', '&', '<', '>', '|', ':', '*', '?', }; } }
+        public static char[] InvalidChars => new char[] { '"', '&', '<', '>', '|', ':', '*', '?', };
 
         #region special paths
 
@@ -154,13 +108,7 @@ namespace Cave.FileSystem
         /// <summary>
         /// Obtains the program directory
         /// </summary>
-        public static string ProgramDirectory
-        {
-            get
-            {
-                return Path.GetDirectoryName(ProgramFileName);
-            }
-        }
+        public static string ProgramDirectory => Path.GetDirectoryName(ProgramFileName);
 
         /// <summary>
         /// Obtains the program files base path (this may be process dependent on 64 bit os!)
@@ -170,7 +118,11 @@ namespace Cave.FileSystem
             get
             {
                 string want = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles);
-                if (Directory.Exists(want)) return want;
+                if (Directory.Exists(want))
+                {
+                    return want;
+                }
+
                 return Environment.GetFolderPath(Environment.SpecialFolder.Personal);
 
             }
@@ -184,7 +136,11 @@ namespace Cave.FileSystem
             get
             {
                 string want = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
-                if (Directory.Exists(want)) return want;
+                if (Directory.Exists(want))
+                {
+                    return want;
+                }
+
                 return Environment.GetFolderPath(Environment.SpecialFolder.Personal);
             }
         }
@@ -197,7 +153,11 @@ namespace Cave.FileSystem
             get
             {
                 string want = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-                if (Directory.Exists(want)) return want;
+                if (Directory.Exists(want))
+                {
+                    return want;
+                }
+
                 return Environment.GetFolderPath(Environment.SpecialFolder.Personal);
             }
         }
@@ -210,7 +170,11 @@ namespace Cave.FileSystem
             get
             {
                 string want = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
-                if (Directory.Exists(want)) return want;
+                if (Directory.Exists(want))
+                {
+                    return want;
+                }
+
                 return Environment.GetFolderPath(Environment.SpecialFolder.Personal);
             }
         }
@@ -223,7 +187,11 @@ namespace Cave.FileSystem
             get
             {
                 string want = Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData);
-                if (Directory.Exists(want)) return want;
+                if (Directory.Exists(want))
+                {
+                    return want;
+                }
+
                 return Environment.GetFolderPath(Environment.SpecialFolder.Personal);
             }
         }
@@ -242,15 +210,15 @@ namespace Cave.FileSystem
                     case PlatformType.Linux:
                     case PlatformType.Solaris:
                     case PlatformType.UnknownUnix:
-                    return "/etc/";
+                        return "/etc/";
 
                     case PlatformType.Android:
-                    return Environment.GetFolderPath(Environment.SpecialFolder.Personal);
+                        return Environment.GetFolderPath(Environment.SpecialFolder.Personal);
 
                     case PlatformType.Windows:
                     case PlatformType.CompactFramework:
                     case PlatformType.Xbox:
-                    return LocalMachineAppData;
+                        return LocalMachineAppData;
                 }
             }
         }
@@ -258,24 +226,12 @@ namespace Cave.FileSystem
         /// <summary>
         /// Obtains the local user configuration directory
         /// </summary>
-        public static string LocalUserConfiguration
-        {
-            get
-            {
-                return LocalUserAppData;
-            }
-        }
+        public static string LocalUserConfiguration => LocalUserAppData;
 
         /// <summary>
         /// Obtains the configuration directory (this equals <see cref="UserAppData"/>)
         /// </summary>
-        public static string UserConfiguration
-        {
-            get
-            {
-                return UserAppData;
-            }
-        }
+        public static string UserConfiguration => UserAppData;
 
         #endregion
 
@@ -287,17 +243,40 @@ namespace Cave.FileSystem
         /// <returns></returns>
         public static bool IsRelative(string fullPath, string basePath)
         {
-            if (fullPath == null) throw new ArgumentNullException("fullPath");
-            if (basePath == null) throw new ArgumentNullException("basePath");
+            if (fullPath == null)
+            {
+                throw new ArgumentNullException("fullPath");
+            }
+
+            if (basePath == null)
+            {
+                throw new ArgumentNullException("basePath");
+            }
+
             string[] fullCheck = fullPath.Split(PathSeparatorChars, StringSplitOptions.RemoveEmptyEntries);
             string[] baseCheck = basePath.Split(PathSeparatorChars, StringSplitOptions.RemoveEmptyEntries);
-            if (fullCheck.Contains("..")) throw new ArgumentException("FullPath may not contain relative path elements!");
-            if (baseCheck.Contains("..")) throw new ArgumentException("BasePath may not contain relative path elements!");
+            if (fullCheck.Contains(".."))
+            {
+                throw new ArgumentException("FullPath may not contain relative path elements!");
+            }
+
+            if (baseCheck.Contains(".."))
+            {
+                throw new ArgumentException("BasePath may not contain relative path elements!");
+            }
+
             StringComparison comparison = Platform.IsMicrosoft ? StringComparison.CurrentCultureIgnoreCase : StringComparison.CurrentCulture;
-            if (baseCheck.Length > fullCheck.Length) return false;
+            if (baseCheck.Length > fullCheck.Length)
+            {
+                return false;
+            }
+
             for (int i = 0; i < baseCheck.Length; i++)
             {
-                if (!string.Equals(baseCheck[i], fullCheck[i], comparison)) return false;
+                if (!string.Equals(baseCheck[i], fullCheck[i], comparison))
+                {
+                    return false;
+                }
             }
             return true;
         }
@@ -310,15 +289,25 @@ namespace Cave.FileSystem
         /// <returns></returns>
         public static string GetRelative(string fullPath, string basePath)
         {
-            if (fullPath == null) throw new ArgumentNullException("fullPath");
-            if (basePath == null) throw new ArgumentNullException("basePath");
+            if (fullPath == null)
+            {
+                throw new ArgumentNullException("fullPath");
+            }
+
+            if (basePath == null)
+            {
+                throw new ArgumentNullException("basePath");
+            }
 
             string[] relative = fullPath.Split(PathSeparatorChars, StringSplitOptions.RemoveEmptyEntries);
             string[] baseCheck = basePath.Split(PathSeparatorChars, StringSplitOptions.RemoveEmptyEntries);
             StringComparison comparison = Platform.IsMicrosoft ? StringComparison.CurrentCultureIgnoreCase : StringComparison.CurrentCulture;
             for (int i = 0; i < baseCheck.Length; i++)
             {
-                if (!string.Equals(baseCheck[i], relative[i], comparison)) throw new ArgumentException(string.Format("BasePath {0} is not a valid base for FullPath {1}!", basePath, fullPath));
+                if (!string.Equals(baseCheck[i], relative[i], comparison))
+                {
+                    throw new ArgumentException(string.Format("BasePath {0} is not a valid base for FullPath {1}!", basePath, fullPath));
+                }
             }
             return "." + Path.DirectorySeparatorChar + string.Join(Path.DirectorySeparatorChar.ToString(), relative, baseCheck.Length, relative.Length - baseCheck.Length);
         }
@@ -329,7 +318,10 @@ namespace Cave.FileSystem
         /// <param name="fileName"></param>
         public static void TouchFile(string fileName)
         {
-            if (fileName == null) throw new ArgumentNullException("fileName");
+            if (fileName == null)
+            {
+                throw new ArgumentNullException("fileName");
+            }
 
             Directory.CreateDirectory(Path.GetDirectoryName(fileName));
             File.Open(fileName, FileMode.OpenOrCreate, FileAccess.Read, FileShare.ReadWrite).Close();
@@ -368,7 +360,11 @@ namespace Cave.FileSystem
         /// <remarks>This function supports long paths.</remarks>
         public static string Combine(char pathSeparator, params string[] paths)
         {
-            if (paths == null) throw new ArgumentNullException("paths");
+            if (paths == null)
+            {
+                throw new ArgumentNullException("paths");
+            }
+
             string root = null;
             char separator = pathSeparator;
 
@@ -376,8 +372,15 @@ namespace Cave.FileSystem
             foreach (string s in paths)
             {
                 string path = s;
-                if (path == null) continue;
-                if (path.Length < 1) continue;
+                if (path == null)
+                {
+                    continue;
+                }
+
+                if (path.Length < 1)
+                {
+                    continue;
+                }
                 #region handle rooted paths
                 if (path.Contains("://"))
                 {
@@ -435,8 +438,16 @@ namespace Cave.FileSystem
                 string[] parts = path.Split(new char[] { '/', '\\' }, StringSplitOptions.RemoveEmptyEntries);
                 foreach (string part in parts)
                 {
-                    if (part == "?") throw new ArgumentException(string.Format("Invalid path {0}", path), nameof(paths));
-                    if (part == ".") continue;
+                    if (part == "?")
+                    {
+                        throw new ArgumentException(string.Format("Invalid path {0}", path), nameof(paths));
+                    }
+
+                    if (part == ".")
+                    {
+                        continue;
+                    }
+
                     if (part == "..")
                     {
                         if (resultParts.Count > 0)
@@ -457,7 +468,7 @@ namespace Cave.FileSystem
             {
                 return root ?? ".";
             }
-            var result = string.Join(separator.ToString(), resultParts.ToArray());
+            string result = string.Join(separator.ToString(), resultParts.ToArray());
             return root + result;
         }
 
@@ -494,9 +505,15 @@ namespace Cave.FileSystem
         /// </example>
         public static ICollection<FileItem> FindFiles(IEnumerable<string> fileMaskList, string mainPath = null, bool recursive = false)
         {
-            if (fileMaskList == null) throw new ArgumentNullException("fileMaskList");
+            if (fileMaskList == null)
+            {
+                throw new ArgumentNullException("fileMaskList");
+            }
 
-            if (mainPath != null) mainPath = Path.GetFullPath(mainPath);
+            if (mainPath != null)
+            {
+                mainPath = Path.GetFullPath(mainPath);
+            }
 
             List<FileItem> result = new List<FileItem>();
             foreach (string fileMask in fileMaskList)
@@ -521,7 +538,11 @@ namespace Cave.FileSystem
                         path = Combine(mainPath, path);
                     }
                     path = Path.GetFullPath(path);
-                    if (!Directory.Exists(path)) continue;
+                    if (!Directory.Exists(path))
+                    {
+                        continue;
+                    }
+
                     foreach (string f in Directory.GetFiles(path, mask, searchOption))
                     {
                         if (mainPath != null)
@@ -557,9 +578,16 @@ namespace Cave.FileSystem
         /// </example>
         public static ICollection<DirectoryItem> FindDirectories(IEnumerable<string> directoryMaskList, string mainPath = null, bool recursive = false)
         {
-            if (directoryMaskList == null) throw new ArgumentNullException("directoryMaskList");
+            if (directoryMaskList == null)
+            {
+                throw new ArgumentNullException("directoryMaskList");
+            }
 
-            if (mainPath != null) mainPath = Path.GetFullPath(mainPath);
+            if (mainPath != null)
+            {
+                mainPath = Path.GetFullPath(mainPath);
+            }
+
             List<DirectoryItem> result = new List<DirectoryItem>();
             foreach (string dir in directoryMaskList)
             {
@@ -586,7 +614,11 @@ namespace Cave.FileSystem
                     string basePath = (mainPath == null) ? Path.GetFullPath(path) : mainPath;
                     path = Path.GetFullPath(Combine(basePath, path));
 
-                    if (!Directory.Exists(path)) continue;
+                    if (!Directory.Exists(path))
+                    {
+                        continue;
+                    }
+
                     foreach (string directory in Directory.GetDirectories(path, mask, searchOption))
                     {
                         result.Add(DirectoryItem.FromFullPath(basePath, directory));
@@ -594,7 +626,10 @@ namespace Cave.FileSystem
                     if (string.IsNullOrEmpty(mask))
                     {
                         DirectoryItem directory = DirectoryItem.FromFullPath(basePath, path);
-                        if (!result.Contains(directory)) result.Add(directory);
+                        if (!result.Contains(directory))
+                        {
+                            result.Add(directory);
+                        }
                     }
                 }
                 catch (Exception ex)
@@ -613,7 +648,10 @@ namespace Cave.FileSystem
         /// <returns></returns>
         public static ICollection<FileItem> GetRelativeFiles(string basePath, IEnumerable<string> paths)
         {
-            if (paths == null) throw new ArgumentNullException("paths");
+            if (paths == null)
+            {
+                throw new ArgumentNullException("paths");
+            }
 
             List<FileItem> result = new List<FileItem>();
             foreach (string path in paths)
@@ -631,10 +669,14 @@ namespace Cave.FileSystem
         {
             string basePath = Path.GetTempPath();
             int number = Environment.TickCount;
-            while (Directory.Exists(Combine(basePath, (++number).ToString()))) ;
+            while (Directory.Exists(Combine(basePath, (++number).ToString())))
+            {
+                ;
+            }
+
             string result = Combine(basePath, number.ToString());
             DateTime creationTime = DateTime.UtcNow;
-            Directory.CreateDirectory(result);          
+            Directory.CreateDirectory(result);
             return result;
         }
 
@@ -646,10 +688,16 @@ namespace Cave.FileSystem
         /// <remarks>Unlike the <see cref="System.IO.Path"/> class the path isnt otherwise checked for validity.</remarks>
         public static string DropRoot(string path)
         {
-            if (string.IsNullOrEmpty(path)) throw new ArgumentNullException(nameof(path));
+            if (string.IsNullOrEmpty(path))
+            {
+                throw new ArgumentNullException(nameof(path));
+            }
 
             string result = path;
-            if (Platform.IsMicrosoft && result.StartsWith(WindowsLongPathPrefix)) result = result.Substring(WindowsLongPathPrefix.Length);
+            if (Platform.IsMicrosoft && result.StartsWith(WindowsLongPathPrefix))
+            {
+                result = result.Substring(WindowsLongPathPrefix.Length);
+            }
 
             if ((path[0] == '\\') || (path[0] == '/'))
             {
@@ -695,8 +743,12 @@ namespace Cave.FileSystem
         /// <returns></returns>
         public static IList<string> SplitPath(string fullPath)
         {
-            if (fullPath == null) return new string[0];
-            var parts = fullPath.SplitKeepSeparators('\\', '/');
+            if (fullPath == null)
+            {
+                return new string[0];
+            }
+
+            string[] parts = fullPath.SplitKeepSeparators('\\', '/');
             string root = null;
             List<string> folders = new List<string>();
             for (int i = 0; i < parts.Length; i++)
@@ -709,18 +761,28 @@ namespace Cave.FileSystem
                         if (!Platform.IsMicrosoft || root.Length > 1)
                         {
                             root += "//";
-                            while (parts[i] == "/" || parts[i] == "\\") ++i;
+                            while (parts[i] == "/" || parts[i] == "\\")
+                            {
+                                ++i;
+                            }
                         }
                         else if (Platform.IsMicrosoft)
                         {
                             root += "\\";
-                            while (parts[i] == "/" || parts[i] == "\\") ++i;
+                            while (parts[i] == "/" || parts[i] == "\\")
+                            {
+                                ++i;
+                            }
                         }
                     }
                     folders.Add(root);
                     continue;
                 }
-                if (parts[i] == "\\" || parts[i] == "/") continue;
+                if (parts[i] == "\\" || parts[i] == "/")
+                {
+                    continue;
+                }
+
                 folders.Add(parts[i]);
             }
             return folders;
@@ -741,7 +803,11 @@ namespace Cave.FileSystem
             {
                 try { Directory.Delete(path, recursive); } catch { return false; }
             }
-            else return true;
+            else
+            {
+                return true;
+            }
+
             TryDeleteDirectory(Path.GetDirectoryName(path), false);
             return true;
         }
@@ -755,9 +821,17 @@ namespace Cave.FileSystem
             return results.ToArray();
         }
 #else
-        public static string[] GetFileSystemEntries(string file, string searchPattern = "*", SearchOption searchOption = SearchOption.TopDirectoryOnly) => Directory.GetFileSystemEntries(file, searchPattern, searchOption);
+        public static string[] GetFileSystemEntries(string file, string searchPattern = "*", SearchOption searchOption = SearchOption.TopDirectoryOnly)
+        {
+            return Directory.GetFileSystemEntries(file, searchPattern, searchOption);
+        }
 #endif
 
+        /// <summary>
+        /// Gets the size, in bytes, of the specified file.
+        /// </summary>
+        /// <param name="fileName">The filename</param>
+        /// <returns>The size of the current file in bytes.</returns>
         public static long GetSize(string fileName)
         {
             return new FileInfo(fileName).Length;

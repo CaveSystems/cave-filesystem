@@ -50,11 +50,11 @@ namespace Cave.FileSystem
 
         /// <summary>Gets the file system entries seen.</summary>
         /// <value>The file system entries seen.</value>
-        public int Seen { get { return DirectoriesSeen + FilesSeen; } }
+        public int Seen => DirectoriesSeen + FilesSeen;
 
         /// <summary>Gets the file system entries done.</summary>
         /// <value>The file system entries done.</value>
-        public int Done { get { return DirectoriesDone + FilesDone; } }
+        public int Done => DirectoriesDone + FilesDone;
 
         /// <summary>The found file event</summary>
         public event EventHandler<FileItemEventArgs> FoundFile;
@@ -84,17 +84,32 @@ namespace Cave.FileSystem
                 int directoriesDone = 0;
                 while (directoryWalkerList.Count > 0)
                 {
-                    if (m_Exit) break;
+                    if (m_Exit)
+                    {
+                        break;
+                    }
+
                     string currentDirectory = directoryWalkerList.Pop();
                     DirectoriesDone++;
 
-                    while (queue.Peek().IsCompleted) queue.Dequeue();
-                    if (queue.Count > 0) Task.WaitAny(queue.ToArray());
+                    while (queue.Peek().IsCompleted)
+                    {
+                        queue.Dequeue();
+                    }
+
+                    if (queue.Count > 0)
+                    {
+                        Task.WaitAny(queue.ToArray());
+                    }
 
                     queue.Enqueue(Task.Factory.StartNew(delegate
                     {
                         SearchFiles(currentDirectory);
-                        if (m_Exit) return;
+                        if (m_Exit)
+                        {
+                            return;
+                        }
+
                         FoundDirectory?.Invoke(this, new DirectoryItemEventArgs(DirectoryItem.FromFullPath(m_BaseDirectory, currentDirectory)));
                     }));
 
@@ -103,7 +118,11 @@ namespace Cave.FileSystem
                     {
                         foreach (string directory in Directory.GetDirectories(currentDirectory, m_DirectoryMask))
                         {
-                            if (m_Exit) break;
+                            if (m_Exit)
+                            {
+                                break;
+                            }
+
                             DirectoriesSeen++;
                             directoryWalkerList.Push(FileSystem.Combine(m_BaseDirectory, directory));
                         }
@@ -123,7 +142,11 @@ namespace Cave.FileSystem
             {
                 foreach (string fullFileName in Directory.GetFiles(currentDirectory, m_FileMask))
                 {
-                    if (m_Exit) return;
+                    if (m_Exit)
+                    {
+                        return;
+                    }
+
                     FileItem file = FileItem.FromFullPath(m_BaseDirectory, fullFileName);
                     foreach (IFileFinderComparer comparer in m_Comparer)
                     {
@@ -136,7 +159,7 @@ namespace Cave.FileSystem
 
                     if (file != null)
                     {
-                         FoundFile?.Invoke(this, new FileItemEventArgs(file)); 
+                        FoundFile?.Invoke(this, new FileItemEventArgs(file));
                     }
                 }
             }
@@ -155,14 +178,22 @@ namespace Cave.FileSystem
         /// <param name="comparer">the additionally used comparers</param>
         void Prepare(string baseDirectory, string directoryMask, string fileMask, params IFileFinderComparer[] comparer)
         {
-            if (baseDirectory == null) throw new ArgumentNullException("baseDirectory");
+            if (baseDirectory == null)
+            {
+                throw new ArgumentNullException("baseDirectory");
+            }
+
             m_BaseDirectory = baseDirectory;
-            if (!Directory.Exists(m_BaseDirectory)) throw new DirectoryNotFoundException();
+            if (!Directory.Exists(m_BaseDirectory))
+            {
+                throw new DirectoryNotFoundException();
+            }
+
             m_FileMask = fileMask;
             m_DirectoryMask = directoryMask;
             m_Comparer = comparer;
         }
-        
+
         /// <summary>
         /// creates a filefinder thread within the specified basedirectory
         /// </summary>
@@ -189,7 +220,11 @@ namespace Cave.FileSystem
         /// <exception cref="InvalidOperationException"></exception>
         public void Start()
         {
-            if (m_SearchTask != null) throw new InvalidOperationException(string.Format("Search is already running!"));
+            if (m_SearchTask != null)
+            {
+                throw new InvalidOperationException(string.Format("Search is already running!"));
+            }
+
             m_SearchTask = Task.Factory.StartNew(SearchDirectories);
         }
 
@@ -197,31 +232,23 @@ namespace Cave.FileSystem
         /// <exception cref="InvalidOperationException"></exception>
         public void Wait()
         {
-            if (m_SearchTask == null) throw new InvalidOperationException(string.Format("Search was not started!"));
+            if (m_SearchTask == null)
+            {
+                throw new InvalidOperationException(string.Format("Search was not started!"));
+            }
+
             m_SearchTask.Wait();
         }
 
         /// <summary>
         /// Obtains the base directory of the search
         /// </summary>
-        public string BaseDirectory
-        {
-            get
-            {
-                return m_BaseDirectory;
-            }
-        }
+        public string BaseDirectory => m_BaseDirectory;
 
         /// <summary>
         /// Obtains whether the filefinder has completed the search task and all items have been read
         /// </summary>
-        public bool Completed
-        {
-            get
-            {
-                return m_SearchTask.IsCompleted;
-            }
-        }
+        public bool Completed => m_SearchTask.IsCompleted;
 
         /// <summary>Stops this instance.</summary>
         public void Stop()
@@ -242,13 +269,7 @@ namespace Cave.FileSystem
 
         /// <summary>Gets the name of the log source.</summary>
         /// <value>The name of the log source.</value>
-        public string LogSourceName
-        {
-            get
-            {
-                return Name + " " + m_BaseDirectory;
-            }
-        }
+        public string LogSourceName => Name + " " + m_BaseDirectory;
 
         /// <summary>Releases the unmanaged resources used by this instance and optionally releases the managed resources.</summary>
         /// <param name="disposing">true to release both managed and unmanaged resources; false to release only unmanaged resources.</param>

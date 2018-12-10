@@ -1,51 +1,4 @@
-﻿#region CopyRight 2018
-/*
-    Copyright (c) 2003-2018 Andreas Rohleder (andreas@rohleder.cc)
-    All rights reserved
-*/
-#endregion
-#region License LGPL-3
-/*
-    This program/library/sourcecode is free software; you can redistribute it
-    and/or modify it under the terms of the GNU Lesser General Public License
-    version 3 as published by the Free Software Foundation subsequent called
-    the License.
-
-    You may not use this program/library/sourcecode except in compliance
-    with the License. The License is included in the LICENSE file
-    found at the installation directory or the distribution package.
-
-    Permission is hereby granted, free of charge, to any person obtaining
-    a copy of this software and associated documentation files (the
-    "Software"), to deal in the Software without restriction, including
-    without limitation the rights to use, copy, modify, merge, publish,
-    distribute, sublicense, and/or sell copies of the Software, and to
-    permit persons to whom the Software is furnished to do so, subject to
-    the following conditions:
-
-    The above copyright notice and this permission notice shall be included
-    in all copies or substantial portions of the Software.
-
-    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-    EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-    MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-    NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
-    LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
-    OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
-    WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*/
-#endregion
-#region Authors & Contributors
-/*
-   Author:
-     Andreas Rohleder <andreas@rohleder.cc>
-
-   Contributors:
-
- */
-#endregion
-
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading;
@@ -67,10 +20,22 @@ namespace Cave.FileSystem
 
         void m_Start(string baseDirectory, string directoryMask, string fileMask, params IFileFinderComparer[] comparer)
         {
-            if (DirectorySearchRunning || FileSearchRunning) throw new InvalidOperationException(string.Format("Search is already running!"));
-            if (baseDirectory == null) throw new ArgumentNullException("baseDirectory");
+            if (DirectorySearchRunning || FileSearchRunning)
+            {
+                throw new InvalidOperationException(string.Format("Search is already running!"));
+            }
+
+            if (baseDirectory == null)
+            {
+                throw new ArgumentNullException("baseDirectory");
+            }
+
             m_BaseDirectory = baseDirectory;
-            if (!Directory.Exists(m_BaseDirectory)) throw new DirectoryNotFoundException();
+            if (!Directory.Exists(m_BaseDirectory))
+            {
+                throw new DirectoryNotFoundException();
+            }
+
             m_FileMask = fileMask;
             m_DirectoryMask = directoryMask;
             m_Comparer = comparer;
@@ -199,9 +164,26 @@ namespace Cave.FileSystem
         {
             get
             {
-                if (DirectorySearchRunning) lock (m_DirectoryList) return (m_DirectoryList.Count / DirectoriesSeen) * 0.2f;
-                if (FileSearchRunning) lock (m_FileList) return 0.2f + (m_FileList.Count / FilesSeen) * 0.4f;
-                lock (m_FileList) return 0.6f + (m_FileList.Count / FilesSeen) * 0.4f;
+                if (DirectorySearchRunning)
+                {
+                    lock (m_DirectoryList)
+                    {
+                        return (m_DirectoryList.Count / DirectoriesSeen) * 0.2f;
+                    }
+                }
+
+                if (FileSearchRunning)
+                {
+                    lock (m_FileList)
+                    {
+                        return 0.2f + (m_FileList.Count / FilesSeen) * 0.4f;
+                    }
+                }
+
+                lock (m_FileList)
+                {
+                    return 0.6f + (m_FileList.Count / FilesSeen) * 0.4f;
+                }
             }
         }
 
@@ -251,7 +233,11 @@ namespace Cave.FileSystem
             lock (this)
             {
                 List<FileItem> result = new List<FileItem>(maximum);
-                if (m_FileList.Count < maximum) maximum = m_FileList.Count;
+                if (m_FileList.Count < maximum)
+                {
+                    maximum = m_FileList.Count;
+                }
+
                 for (int i = 0; i < maximum; i++)
                 {
                     result.Add(m_FileList.First.Value);
@@ -278,7 +264,10 @@ namespace Cave.FileSystem
                         m_FileList.RemoveFirst();
                         return result;
                     }
-                    if (waitAction == null) Monitor.Wait(m_FileList);
+                    if (waitAction == null)
+                    {
+                        Monitor.Wait(m_FileList);
+                    }
                 }
                 waitAction?.Invoke();
             }
@@ -297,7 +286,7 @@ namespace Cave.FileSystem
         /// <summary>
         /// Obtains the base directory of the search
         /// </summary>
-        public string BaseDirectory { get { return m_BaseDirectory; } }
+        public string BaseDirectory => m_BaseDirectory;
 
         /// <summary>
         /// Obtains whether the filefinder has completed the search task and all items have been read
@@ -306,7 +295,11 @@ namespace Cave.FileSystem
         {
             get
             {
-                if (FileSearchRunning) return false;
+                if (FileSearchRunning)
+                {
+                    return false;
+                }
+
                 return FilesQueued == 0;
             }
         }
@@ -314,7 +307,7 @@ namespace Cave.FileSystem
         /// <summary>
         /// Obtains the number of queued files
         /// </summary>
-        public int FilesQueued { get { lock (m_FileList) return m_FileList.Count; } }
+        public int FilesQueued { get { lock (m_FileList) { return m_FileList.Count; } } }
 
 
         /// <summary>

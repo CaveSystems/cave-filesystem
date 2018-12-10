@@ -1,50 +1,3 @@
-#region CopyRight 2018
-/*
-    Copyright (c) 2003-2018 Andreas Rohleder (andreas@rohleder.cc)
-    All rights reserved
-*/
-#endregion
-#region License LGPL-3
-/*
-    This program/library/sourcecode is free software; you can redistribute it
-    and/or modify it under the terms of the GNU Lesser General Public License
-    version 3 as published by the Free Software Foundation subsequent called
-    the License.
-
-    You may not use this program/library/sourcecode except in compliance
-    with the License. The License is included in the LICENSE file
-    found at the installation directory or the distribution package.
-
-    Permission is hereby granted, free of charge, to any person obtaining
-    a copy of this software and associated documentation files (the
-    "Software"), to deal in the Software without restriction, including
-    without limitation the rights to use, copy, modify, merge, publish,
-    distribute, sublicense, and/or sell copies of the Software, and to
-    permit persons to whom the Software is furnished to do so, subject to
-    the following conditions:
-
-    The above copyright notice and this permission notice shall be included
-    in all copies or substantial portions of the Software.
-
-    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-    EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-    MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-    NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
-    LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
-    OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
-    WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*/
-#endregion
-#region Authors & Contributors
-/*
-   Author:
-     Andreas Rohleder <andreas@rohleder.cc>
-
-   Contributors:
-
- */
-#endregion
-
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -147,10 +100,17 @@ namespace Cave.FileSystem
         {
             Thread.CurrentThread.Priority = ThreadPriority.Lowest;
             Thread.CurrentThread.IsBackground = true;
-            if (VerboseMessages) Trace.TraceError("Starting directory search at {0}", m_BaseDirectory);
+            if (VerboseMessages)
+            {
+                Trace.TraceError("Starting directory search at {0}", m_BaseDirectory);
+            }
+
             m_Recurser(new DirectoryItem(m_BaseDirectory, "."));
             m_SearchRunning = false;
-            if (VerboseMessages) Trace.TraceError("Completed directory search at {0}", m_BaseDirectory);
+            if (VerboseMessages)
+            {
+                Trace.TraceError("Completed directory search at {0}", m_BaseDirectory);
+            }
         }
 
         /// <summary>
@@ -161,10 +121,22 @@ namespace Cave.FileSystem
         /// <param name="comparer">the additionally used comparers</param>
         protected void m_Prepare(string baseDirectory, string directoryMask, params IDirectoryFinderComparer[] comparer)
         {
-            if (m_SearchRunning) throw new InvalidOperationException(string.Format("Search is already running!"));
-            if (baseDirectory == null) throw new ArgumentNullException("baseDirectory");
+            if (m_SearchRunning)
+            {
+                throw new InvalidOperationException(string.Format("Search is already running!"));
+            }
+
+            if (baseDirectory == null)
+            {
+                throw new ArgumentNullException("baseDirectory");
+            }
+
             m_BaseDirectory = Path.GetFullPath(baseDirectory);
-            if (!Directory.Exists(m_BaseDirectory)) throw new DirectoryNotFoundException();
+            if (!Directory.Exists(m_BaseDirectory))
+            {
+                throw new DirectoryNotFoundException();
+            }
+
             m_DirectoryMask = directoryMask;
             m_Comparer = comparer;
             m_WasStarted = false;
@@ -208,13 +180,19 @@ namespace Cave.FileSystem
             {
                 lock (this)
                 {
-                    if (m_DirectoryList.Count > 0) return m_DirectoryList.Dequeue();
+                    if (m_DirectoryList.Count > 0)
+                    {
+                        return m_DirectoryList.Dequeue();
+                    }
                 }
                 Thread.Sleep(1);
             }
             lock (this)
             {
-                if (m_DirectoryList.Count > 0) return m_DirectoryList.Dequeue();
+                if (m_DirectoryList.Count > 0)
+                {
+                    return m_DirectoryList.Dequeue();
+                }
             }
             return null;
         }
@@ -224,13 +202,14 @@ namespace Cave.FileSystem
         /// </summary>
         public bool DeepestFirst
         {
-            get
-            {
-                return m_DeepestFirst;
-            }
+            get => m_DeepestFirst;
             set
             {
-                if (m_WasStarted) throw new InvalidOperationException(string.Format("Finder was already started!"));
+                if (m_WasStarted)
+                {
+                    throw new InvalidOperationException(string.Format("Finder was already started!"));
+                }
+
                 m_DeepestFirst = value;
             }
         }
@@ -238,13 +217,7 @@ namespace Cave.FileSystem
         /// <summary>
         /// Obtains the base directory of the search
         /// </summary>
-        public string BaseDirectory
-        {
-            get
-            {
-                return m_BaseDirectory;
-            }
-        }
+        public string BaseDirectory => m_BaseDirectory;
 
         /// <summary>
         /// Obtains whether the filefinder has completed the search task and all items have been read
@@ -253,8 +226,16 @@ namespace Cave.FileSystem
         {
             get
             {
-                if (!m_WasStarted) return false;
-                if (m_SearchRunning) return false;
+                if (!m_WasStarted)
+                {
+                    return false;
+                }
+
+                if (m_SearchRunning)
+                {
+                    return false;
+                }
+
                 return true;
             }
         }
