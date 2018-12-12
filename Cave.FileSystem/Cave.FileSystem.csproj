@@ -10,7 +10,7 @@
     <PackageLicenseUrl>https://www.gnu.org/licenses/lgpl-3.0.en.html</PackageLicenseUrl>
     <SignAssembly>true</SignAssembly>
     <AssemblyOriginatorKeyFile>Cave.FileSystem.snk</AssemblyOriginatorKeyFile>
-    <Version>1.0.0-beta-$(Configuration.ToLower())-1</Version>
+    <Version>1.0.0</Version>
     <PackageIconUrl>https://www.cavesystems.de/favicon.ico</PackageIconUrl>
     <PackageTags>CaveSystems FileSystem</PackageTags>
     <PackageProjectUrl>https://github.com/CaveSystems/cave-FileSystem</PackageProjectUrl>
@@ -20,8 +20,8 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <GenerateAssemblyInfo>true</GenerateAssemblyInfo>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <AssemblyVersion>1.0.0.1</AssemblyVersion>
-    <FileVersion>2018.1210.2027.1203</FileVersion>
+    <AssemblyVersion>1.0.0</AssemblyVersion>
+    <FileVersion>2018.1212.2259.2957</FileVersion>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
     <DebugType>pdbonly</DebugType>
@@ -68,8 +68,8 @@
     <Folder Include="Properties\" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Cave.AssemblyVersionInfo" Version="1.0.0-alpha-release-1" />
-    <PackageReference Include="Cave.Extensions" Version="1.0.0-alpha-release-4" />
-    <PackageReference Include="Cave.Platform" Version="1.0.0-alpha-release-1" />
+    <PackageReference Include="Cave.AssemblyVersionInfo" Version="1.0.0" />
+    <PackageReference Include="Cave.Extensions" Version="1.0.0" />
+    <PackageReference Include="Cave.Platform" Version="1.0.0" />
   </ItemGroup>
 </Project>
