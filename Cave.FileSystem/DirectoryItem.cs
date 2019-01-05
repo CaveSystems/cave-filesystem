@@ -1,7 +1,7 @@
 using System;
 using System.IO;
 
-namespace Cave.FileSystem
+namespace Cave
 {
     /// <summary>
     /// Provides a directory item. Directories are always rooted!

@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Cave.FileSystem
+namespace Cave
 {
     /// <summary>
     /// Provides directory item event arguments

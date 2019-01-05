@@ -1,7 +1,7 @@
 ﻿using System;
 using System.IO;
 
-namespace Cave.FileSystem
+namespace Cave
 {
     /// <summary>
     /// Provides access to a file location
@@ -86,9 +86,12 @@ namespace Cave.FileSystem
             }
         }
 
+        /// <summary>
+        /// Gets the program deirectory
+        /// </summary>
         public string ProgramDirectory => Path.GetDirectoryName(MainAssembly.Get().GetAssemblyFilePath());
 
-        private string GetRoot()
+        string GetRoot()
         {
             switch (Platform.Type)
             {
@@ -100,7 +103,7 @@ namespace Cave.FileSystem
             }
         }
 
-        private string GetRootAndroid(RootLocation root)
+        string GetRootAndroid(RootLocation root)
         {
             switch (root)
             {
@@ -127,7 +130,7 @@ namespace Cave.FileSystem
             }
         }
 
-        private string GetRootWindows(RootLocation root)
+        string GetRootWindows(RootLocation root)
         {
             switch (root)
             {
@@ -146,7 +149,7 @@ namespace Cave.FileSystem
             }
         }
 
-        private string GetRootUnix(RootLocation root)
+        string GetRootUnix(RootLocation root)
         {
             switch (root)
             {

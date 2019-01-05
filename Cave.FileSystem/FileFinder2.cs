@@ -4,7 +4,7 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Cave.FileSystem
+namespace Cave
 {
     /// <summary>
     /// Provides an asynchronous file finder
@@ -45,7 +45,7 @@ namespace Cave.FileSystem
             Task.Factory.StartNew(m_SearchFiles);
         }
 
-        private void m_SearchFiles()
+        void m_SearchFiles()
         {
             while (true)
             {
@@ -102,7 +102,7 @@ namespace Cave.FileSystem
             throw new Exception("THIS SHOULD NEVER HAPPEN");
         }
 
-        private void m_SearchDirectories()
+        void m_SearchDirectories()
         {
             LinkedList<string> list = new LinkedList<string>();
             list.AddFirst(m_BaseDirectory);

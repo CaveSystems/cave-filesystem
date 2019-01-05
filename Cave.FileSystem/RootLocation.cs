@@ -1,4 +1,4 @@
-﻿namespace Cave.FileSystem
+﻿namespace Cave
 {
     /// <summary>
     /// Available root locations

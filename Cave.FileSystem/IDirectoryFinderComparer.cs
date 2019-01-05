@@ -1,4 +1,4 @@
-namespace Cave.FileSystem
+namespace Cave
 {
     /// <summary>
     /// Provides an interface for <see cref="FileFinder"/> file comparer
