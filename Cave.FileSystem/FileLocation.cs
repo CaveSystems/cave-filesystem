@@ -67,9 +67,9 @@ namespace Cave
         {
             if (Root == RootLocation.Program)
             {
-                return Path.Combine(GetRoot(), Path.Combine(SubFolder, FileName + Extension));
+                return FileSystem.Combine(GetRoot(), SubFolder, FileName + Extension);
             }
-            return Path.Combine(Path.Combine(GetRoot(), CompanyName), Path.Combine(SubFolder, FileName + Extension));
+            return FileSystem.Combine(GetRoot(), CompanyName, SubFolder, FileName + Extension);
         }
 
         /// <summary>Gets the folder.</summary>
@@ -80,9 +80,9 @@ namespace Cave
             {
                 if (Root == RootLocation.Program)
                 {
-                    return Path.Combine(GetRoot(), SubFolder);
+                    return FileSystem.Combine(GetRoot(), SubFolder);
                 }
-                return Path.Combine(GetRoot(), Path.Combine(CompanyName, SubFolder));
+                return FileSystem.Combine(GetRoot(), CompanyName, SubFolder);
             }
         }
 
@@ -110,7 +110,7 @@ namespace Cave
                 case RootLocation.AllUserConfig:
                 case RootLocation.AllUsersData:
                 {
-                    string path = Path.Combine(ProgramDirectory, ".AllUsers");
+                    string path = FileSystem.Combine(ProgramDirectory, ".AllUsers");
                     Directory.CreateDirectory(path);
                     return path;
                 }
@@ -119,7 +119,7 @@ namespace Cave
                 case RootLocation.RoamingUserConfig:
                 case RootLocation.RoamingUserData:
                 {
-                    string path = Path.Combine(ProgramDirectory, ".User_" + Environment.UserName);
+                    string path = FileSystem.Combine(ProgramDirectory, ".User_" + Environment.UserName);
                     Directory.CreateDirectory(path);
                     return path;
                 }

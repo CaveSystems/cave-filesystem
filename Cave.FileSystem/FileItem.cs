@@ -81,7 +81,7 @@ namespace Cave
         {
             BaseDirectory = Path.GetFullPath(baseDirectory);
             Relative = subDirectoryAndName;
-            FullPath = Path.GetFullPath(Path.Combine(BaseDirectory, Relative));
+            FullPath = Path.GetFullPath(FileSystem.Combine(BaseDirectory, Relative));
         }
 
         /// <summary>

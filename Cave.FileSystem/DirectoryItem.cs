@@ -75,6 +75,6 @@ namespace Cave
         /// <summary>
         /// Obtains the full path of the directory
         /// </summary>
-        public string FullPath => Path.GetFullPath(Path.Combine(BaseDirectory, Relative));
+        public string FullPath => Path.GetFullPath(FileSystem.Combine(BaseDirectory, Relative));
     }
 }
