@@ -9,7 +9,17 @@ namespace Cave
 {
     public static class FileSystem
     {
-        static string s_ProgramFileName;
+        /// <summary>
+        /// Obtains the windows long path prefix.
+        /// </summary>
+        public const string WindowsLongPathPrefix = @"\\?\";
+
+        /// <summary>
+        /// Obtains the windows pysical drive prefix.
+        /// </summary>
+        public const string WindowsPysicalDrivePrefix = @"\\.\";
+
+        static string programFileName;
 
         /// <summary>Gets the expression.</summary>
         /// <param name="fieldValue">The field value.</param>
@@ -19,7 +29,7 @@ namespace Cave
             string valueString = fieldValue.ToString();
             bool lastWasWildcard = false;
 
-            StringBuilder sb = new StringBuilder();
+            var sb = new StringBuilder();
             sb.Append('^');
             foreach (char c in valueString)
             {
@@ -69,135 +79,99 @@ namespace Cave
         }
 
         /// <summary>
-        /// Obtains the windows long path prefix
-        /// </summary>
-        public const string WindowsLongPathPrefix = @"\\?\";
-
-        /// <summary>
-        /// Obtains the windows pysical drive prefix
-        /// </summary>
-        public const string WindowsPysicalDrivePrefix = @"\\.\";
-
-        /// <summary>
-        /// Provides all platform path separator chars
+        /// Gets all platform path separator chars.
         /// </summary>
         public static char[] PathSeparatorChars => new char[] { '/', '\\' };
 
         /// <summary>
-        /// Returns invalid chars (in range 32..127) invalid for platform independent paths
+        /// Gets invalid chars (in range 32..127) invalid for platform independent paths.
         /// </summary>
         public static char[] InvalidChars => new char[] { '"', '&', '<', '>', '|', ':', '*', '?', };
 
         #region special paths
 
         /// <summary>
-        /// Obtains the full program fileName with path and extension
+        /// Gets the full program fileName with path and extension.
         /// </summary>
         public static string ProgramFileName
         {
             get
             {
-                if (s_ProgramFileName == null)
+                if (programFileName == null)
                 {
-                    s_ProgramFileName = Path.GetFullPath(MainAssembly.Get().GetAssemblyFilePath());
+                    programFileName = Path.GetFullPath(MainAssembly.Get().GetAssemblyFilePath());
                 }
-                return s_ProgramFileName;
+                return programFileName;
             }
         }
 
         /// <summary>
-        /// Obtains the program directory
+        /// Gets the program directory.
         /// </summary>
         public static string ProgramDirectory => Path.GetDirectoryName(ProgramFileName);
 
         /// <summary>
-        /// Obtains the program files base path (this may be process dependent on 64 bit os!)
+        /// Gets the program files base path (this may be process dependent on 64 bit os!).
         /// </summary>
         public static string ProgramFiles
         {
             get
             {
                 string want = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles);
-                if (Directory.Exists(want))
-                {
-                    return want;
-                }
-
-                return Environment.GetFolderPath(Environment.SpecialFolder.Personal);
-
+                return Directory.Exists(want) ? want : Environment.GetFolderPath(Environment.SpecialFolder.Personal);
             }
         }
 
         /// <summary>
-        /// Obtains the directory where the user stores his/her documents
+        /// Gets the directory where the user stores his/her documents.
         /// </summary>
         public static string UserDocuments
         {
             get
             {
                 string want = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
-                if (Directory.Exists(want))
-                {
-                    return want;
-                }
-
-                return Environment.GetFolderPath(Environment.SpecialFolder.Personal);
+                return Directory.Exists(want) ? want : Environment.GetFolderPath(Environment.SpecialFolder.Personal);
             }
         }
 
         /// <summary>
-        /// Obtains the directory where the user stores his/her roaming profile
+        /// Gets the directory where the user stores his/her roaming profile.
         /// </summary>
         public static string UserAppData
         {
             get
             {
                 string want = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-                if (Directory.Exists(want))
-                {
-                    return want;
-                }
-
-                return Environment.GetFolderPath(Environment.SpecialFolder.Personal);
+                return Directory.Exists(want) ? want : Environment.GetFolderPath(Environment.SpecialFolder.Personal);
             }
         }
 
         /// <summary>
-        /// Obtains the directory where the application may store user and machine specific settings (no roaming)
+        /// Gets the directory where the application may store user and machine specific settings (no roaming).
         /// </summary>
         public static string LocalUserAppData
         {
             get
             {
                 string want = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
-                if (Directory.Exists(want))
-                {
-                    return want;
-                }
-
-                return Environment.GetFolderPath(Environment.SpecialFolder.Personal);
+                return Directory.Exists(want) ? want : Environment.GetFolderPath(Environment.SpecialFolder.Personal);
             }
         }
 
         /// <summary>
-        /// Obtains the directory where the application may store machine specific settings (no roaming)
+        /// Gets the directory where the application may store machine specific settings (no roaming).
         /// </summary>
         public static string LocalMachineAppData
         {
             get
             {
                 string want = Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData);
-                if (Directory.Exists(want))
-                {
-                    return want;
-                }
-
-                return Environment.GetFolderPath(Environment.SpecialFolder.Personal);
+                return Directory.Exists(want) ? want : Environment.GetFolderPath(Environment.SpecialFolder.Personal);
             }
         }
 
         /// <summary>
-        /// Obtains the local machine configuration directory
+        /// Gets the local machine configuration directory.
         /// </summary>
         public static string LocalMachineConfiguration
         {
@@ -224,22 +198,22 @@ namespace Cave
         }
 
         /// <summary>
-        /// Obtains the local user configuration directory
+        /// Gets the local user configuration directory.
         /// </summary>
         public static string LocalUserConfiguration => LocalUserAppData;
 
         /// <summary>
-        /// Obtains the configuration directory (this equals <see cref="UserAppData"/>)
+        /// Gets the configuration directory (this equals <see cref="UserAppData"/>).
         /// </summary>
         public static string UserConfiguration => UserAppData;
 
         #endregion
 
         /// <summary>
-        /// Checks whether a path is a root of an other path
+        /// Checks whether a path is a root of an other path.
         /// </summary>
-        /// <param name="fullPath">The full path of the file / directory</param>
-        /// <param name="basePath">The base path of the file / directory</param>
+        /// <param name="fullPath">The full path of the file / directory.</param>
+        /// <param name="basePath">The base path of the file / directory.</param>
         /// <returns></returns>
         public static bool IsRelative(string fullPath, string basePath)
         {
@@ -282,10 +256,10 @@ namespace Cave
         }
 
         /// <summary>
-        /// Obtains a relative path
+        /// Obtains a relative path.
         /// </summary>
-        /// <param name="fullPath">The full path of the file / directory</param>
-        /// <param name="basePath">The base path of the file / directory</param>
+        /// <param name="fullPath">The full path of the file / directory.</param>
+        /// <param name="basePath">The base path of the file / directory.</param>
         /// <returns></returns>
         public static string GetRelative(string fullPath, string basePath)
         {
@@ -313,7 +287,7 @@ namespace Cave
         }
 
         /// <summary>
-        /// Touches (creates needed directories and creates/opens the file)
+        /// Touches (creates needed directories and creates/opens the file).
         /// </summary>
         /// <param name="fileName"></param>
         public static void TouchFile(string fileName)
@@ -335,28 +309,22 @@ namespace Cave
         /// </remarks>
         /// <param name="path">The path.</param>
         /// <returns></returns>
-        public static string GetParent(string path)
-        {
-            return Combine(path, "..");
-        }
+        public static string GetParent(string path) => Combine(path, "..");
 
         /// <summary>Combines multiple paths starting with the current directory.</summary>
         /// <param name="paths">The paths.</param>
         /// <returns></returns>
-        /// <exception cref="System.ArgumentNullException">paths</exception>
-        /// <exception cref="System.ArgumentException">paths</exception>
+        /// <exception cref="System.ArgumentNullException">paths.</exception>
+        /// <exception cref="System.ArgumentException">paths.</exception>
         /// <remarks>This function supports long paths.</remarks>
-        public static string Combine(params string[] paths)
-        {
-            return Combine(Path.DirectorySeparatorChar, paths);
-        }
+        public static string Combine(params string[] paths) => Combine(Path.DirectorySeparatorChar, paths);
 
         /// <summary>Combines multiple paths starting with the current directory.</summary>
         /// <param name="pathSeparator">The path separator.</param>
         /// <param name="paths">The paths.</param>
         /// <returns></returns>
-        /// <exception cref="System.ArgumentNullException">paths</exception>
-        /// <exception cref="System.ArgumentException">paths</exception>
+        /// <exception cref="System.ArgumentNullException">paths.</exception>
+        /// <exception cref="System.ArgumentException">paths.</exception>
         /// <remarks>This function supports long paths.</remarks>
         public static string Combine(char pathSeparator, params string[] paths)
         {
@@ -368,7 +336,7 @@ namespace Cave
             string root = null;
             char separator = pathSeparator;
 
-            LinkedList<string> resultParts = new LinkedList<string>();
+            var resultParts = new LinkedList<string>();
             foreach (string s in paths)
             {
                 string path = s;
@@ -394,7 +362,7 @@ namespace Cave
                     {
                         case '/':
                         case '\\':
-                        {//rooted:
+                        {// rooted:
                             resultParts.Clear();
                             separator = pathSeparator;
                             root = separator.ToString();
@@ -457,7 +425,7 @@ namespace Cave
                         }
                         else
                         {
-                            //path is now relative
+                            // path is now relative
                             root = null;
                         }
                     }
@@ -477,31 +445,28 @@ namespace Cave
         /// The FileMaskList may contain absolute and relative pathss, filenames or masks and the "|r", ":r" recurse subdirectories switch.
         /// </summary>
         /// <param name="fileMask">The file mask.</param>
-        /// <param name="mainPath">main path to begin relative searches</param>
+        /// <param name="mainPath">main path to begin relative searches.</param>
         /// <param name="recursive">if set to <c>true</c> [recursive].</param>
         /// <returns></returns>
-        /// <exception cref="System.ArgumentNullException">fileMaskList</exception>
+        /// <exception cref="System.ArgumentNullException">fileMaskList.</exception>
         /// <exception cref="System.IO.DirectoryNotFoundException"></exception>
         /// <example>
-        /// @"c:\somepath\somefile*.ext", @"/absolute/path/file.ext", @"./sub/*.*", @"*.cs|r", @"./somepath/file.ext|r"
+        /// @"c:\somepath\somefile*.ext", @"/absolute/path/file.ext", @"./sub/*.*", @"*.cs|r", @"./somepath/file.ext|r".
         /// </example>
-        public static ICollection<FileItem> FindFiles(string fileMask, string mainPath = null, bool recursive = false)
-        {
-            return FindFiles(new string[] { fileMask }, mainPath, recursive);
-        }
+        public static ICollection<FileItem> FindFiles(string fileMask, string mainPath = null, bool recursive = false) => FindFiles(new string[] { fileMask }, mainPath, recursive);
 
         /// <summary>
         /// Finds all files that match the criteria specified at the FileMaskList.
         /// The FileMaskList may contain absolute and relative pathss, filenames or masks and the "|r", ":r" recurse subdirectories switch.
         /// </summary>
         /// <param name="fileMaskList">The file mask list.</param>
-        /// <param name="mainPath">main path to begin relative searches</param>
+        /// <param name="mainPath">main path to begin relative searches.</param>
         /// <param name="recursive">if set to <c>true</c> [recursive].</param>
         /// <returns></returns>
-        /// <exception cref="System.ArgumentNullException">fileMaskList</exception>
+        /// <exception cref="System.ArgumentNullException">fileMaskList.</exception>
         /// <exception cref="System.IO.DirectoryNotFoundException"></exception>
         /// <example>
-        /// @"c:\somepath\somefile*.ext", @"/absolute/path/file.ext", @"./sub/*.*", @"*.cs|r", @"./somepath/file.ext|r"
+        /// @"c:\somepath\somefile*.ext", @"/absolute/path/file.ext", @"./sub/*.*", @"*.cs|r", @"./somepath/file.ext|r".
         /// </example>
         public static ICollection<FileItem> FindFiles(IEnumerable<string> fileMaskList, string mainPath = null, bool recursive = false)
         {
@@ -515,7 +480,7 @@ namespace Cave
                 mainPath = Path.GetFullPath(mainPath);
             }
 
-            List<FileItem> result = new List<FileItem>();
+            var result = new List<FileItem>();
             foreach (string fileMask in fileMaskList)
             {
                 try
@@ -567,14 +532,14 @@ namespace Cave
         /// Finds all files that match the criteria specified at the FileMaskList.
         /// The FileMaskList may contain absolute and relative paths, filenames or masks and the "|r" recurse subdirectories switch.
         /// </summary>
-        /// <param name="directoryMaskList">The mask to apply</param>
-        /// <param name="mainPath">main path to begin relative searches</param>
+        /// <param name="directoryMaskList">The mask to apply.</param>
+        /// <param name="mainPath">main path to begin relative searches.</param>
         /// <param name="recursive">if set to <c>true</c> [recursive].</param>
         /// <returns></returns>
-        /// <exception cref="System.ArgumentNullException">directoryMaskList</exception>
+        /// <exception cref="System.ArgumentNullException">directoryMaskList.</exception>
         /// <exception cref="System.IO.DirectoryNotFoundException"></exception>
         /// <example>
-        /// @"c:\somepath\*", @"/absolute/path/dir*", @"./sub/*", @"*|r", @"./somepath/file.ext|r"
+        /// @"c:\somepath\*", @"/absolute/path/dir*", @"./sub/*", @"*|r", @"./somepath/file.ext|r".
         /// </example>
         public static ICollection<DirectoryItem> FindDirectories(IEnumerable<string> directoryMaskList, string mainPath = null, bool recursive = false)
         {
@@ -588,14 +553,14 @@ namespace Cave
                 mainPath = Path.GetFullPath(mainPath);
             }
 
-            List<DirectoryItem> result = new List<DirectoryItem>();
+            var result = new List<DirectoryItem>();
             foreach (string dir in directoryMaskList)
             {
                 try
                 {
                     SearchOption searchOption = SearchOption.TopDirectoryOnly;
                     string mask = dir;
-                    if (mask.EndsWith("|r") || mask.EndsWith(":r"))
+                    if (mask.EndsWith("|r") || mask.EndsWith(":r") || recursive)
                     {
                         mask = mask.Substring(0, mask.Length - 2);
                         searchOption = SearchOption.AllDirectories;
@@ -611,7 +576,7 @@ namespace Cave
                         mask = "*";
                     }
 
-                    string basePath = (mainPath == null) ? Path.GetFullPath(path) : mainPath;
+                    string basePath = mainPath ?? Path.GetFullPath(path);
                     path = Path.GetFullPath(Combine(basePath, path));
 
                     if (!Directory.Exists(path))
@@ -625,7 +590,7 @@ namespace Cave
                     }
                     if (string.IsNullOrEmpty(mask))
                     {
-                        DirectoryItem directory = DirectoryItem.FromFullPath(basePath, path);
+                        var directory = DirectoryItem.FromFullPath(basePath, path);
                         if (!result.Contains(directory))
                         {
                             result.Add(directory);
@@ -641,7 +606,7 @@ namespace Cave
         }
 
         /// <summary>
-        /// Obtains a list of relative <see cref="FileItem"/>s from a list of Paths
+        /// Obtains a list of relative <see cref="FileItem"/>s from a list of Paths.
         /// </summary>
         /// <param name="basePath"></param>
         /// <param name="paths"></param>
@@ -653,7 +618,7 @@ namespace Cave
                 throw new ArgumentNullException("paths");
             }
 
-            List<FileItem> result = new List<FileItem>();
+            var result = new List<FileItem>();
             foreach (string path in paths)
             {
                 result.Add(FileItem.FromFullPath(basePath, path));
@@ -662,7 +627,7 @@ namespace Cave
         }
 
         /// <summary>
-        /// Creates a new temporary directory at the users temp path and returns the full path
+        /// Creates a new temporary directory at the users temp path and returns the full path.
         /// </summary>
         /// <returns></returns>
         public static string CreateNewTempDirectory()
@@ -671,17 +636,15 @@ namespace Cave
             int number = Environment.TickCount;
             while (Directory.Exists(Combine(basePath, (++number).ToString())))
             {
-                ;
             }
 
             string result = Combine(basePath, number.ToString());
-            DateTime creationTime = DateTime.UtcNow;
             Directory.CreateDirectory(result);
             return result;
         }
 
         /// <summary>
-        /// Remove any path root present in the path
+        /// Remove any path root present in the path.
         /// </summary>
         /// <param name="path">A <see cref="string"/> containing path information.</param>
         /// <returns>The path with the root removed if it was present; path otherwise.</returns>
@@ -715,15 +678,7 @@ namespace Cave
                     }
 
                     index++;
-
-                    if (index < path.Length)
-                    {
-                        result = path.Substring(index);
-                    }
-                    else
-                    {
-                        result = "";
-                    }
+                    result = index < path.Length ? path.Substring(index) : string.Empty;
                 }
             }
             else if ((path.Length > 1) && (path[1] == ':'))
@@ -750,7 +705,7 @@ namespace Cave
 
             string[] parts = fullPath.SplitKeepSeparators('\\', '/');
             string root = null;
-            List<string> folders = new List<string>();
+            var folders = new List<string>();
             for (int i = 0; i < parts.Length; i++)
             {
                 if (root == null)
@@ -789,10 +744,11 @@ namespace Cave
         }
 
         /// <summary>
-        /// Tries to delete a file or directory and remove empty parent directories
+        /// Tries to delete a file or directory and remove empty parent directories.
         /// </summary>
         /// <param name="path"></param>
         /// <param name="recursive"></param>
+        /// <returns>Returns true on success.</returns>
         public static bool TryDeleteDirectory(string path, bool recursive = false)
         {
             if (File.Exists(path))
@@ -815,27 +771,21 @@ namespace Cave
 #if NET35 || NET20
         public static string[] GetFileSystemEntries(string path, string searchPattern = "*", SearchOption searchOption = SearchOption.TopDirectoryOnly)
         {
-            List<string> results = new List<string>();
+            var results = new List<string>();
             results.AddRange(Directory.GetDirectories(path, "*", searchOption));
             results.AddRange(Directory.GetFiles(path, searchPattern, searchOption));
             return results.ToArray();
         }
 #else
-        public static string[] GetFileSystemEntries(string file, string searchPattern = "*", SearchOption searchOption = SearchOption.TopDirectoryOnly)
-        {
-            return Directory.GetFileSystemEntries(file, searchPattern, searchOption);
-        }
+        public static string[] GetFileSystemEntries(string file, string searchPattern = "*", SearchOption searchOption = SearchOption.TopDirectoryOnly) => Directory.GetFileSystemEntries(file, searchPattern, searchOption);
 #endif
 
         /// <summary>
         /// Gets the size, in bytes, of the specified file.
         /// </summary>
-        /// <param name="fileName">The filename</param>
+        /// <param name="fileName">The filename.</param>
         /// <returns>The size of the current file in bytes.</returns>
-        public static long GetSize(string fileName)
-        {
-            return new FileInfo(fileName).Length;
-        }
+        public static long GetSize(string fileName) => new FileInfo(fileName).Length;
 
         public static DateTime GetLastWriteTime(string filesystemEntry)
         {

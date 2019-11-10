@@ -3,7 +3,7 @@
 namespace Cave
 {
     /// <summary>
-    /// Provides file item event arguments
+    /// Provides file item event arguments.
     /// </summary>
     /// <seealso cref="System.EventArgs" />
     public class FileItemEventArgs : EventArgs
@@ -14,9 +14,6 @@ namespace Cave
 
         /// <summary>Initializes a new instance of the <see cref="FileItemEventArgs"/> class.</summary>
         /// <param name="file">The file.</param>
-        public FileItemEventArgs(FileItem file)
-        {
-            File = file;
-        }
+        public FileItemEventArgs(FileItem file) => File = file;
     }
 }

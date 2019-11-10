@@ -4,16 +4,16 @@ using System.IO;
 namespace Cave
 {
     /// <summary>
-    /// Provides a directory item. Directories are always rooted!
+    /// Provides a directory item. Directories are always rooted!.
     /// </summary>
     public sealed class DirectoryItem
     {
         /// <summary>
-        /// Obtains a relative path
+        /// Obtains a relative path.
         /// </summary>
-        /// <param name="fullPath">The full path of the file / directory</param>
-        /// <param name="basePath">The base path of the file / directory</param>
-        /// <returns></returns>
+        /// <param name="fullPath">The full path of the file / directory.</param>
+        /// <param name="basePath">The base path of the file / directory.</param>
+        /// <returns>Returns the relative path.</returns>
         public static string GetRelative(string fullPath, string basePath)
         {
             if (fullPath == null)
@@ -44,18 +44,16 @@ namespace Cave
         /// Creates a new directory instance from a specified base path and the full path to the directory. (The
         /// subdirectories will be extracted.)
         /// </summary>
-        /// <param name="baseDirectory">The base directory</param>
-        /// <param name="fullDirectory">The full path of the directory</param>
-        public static DirectoryItem FromFullPath(string baseDirectory, string fullDirectory)
-        {
-            return new DirectoryItem(baseDirectory, GetRelative(fullDirectory, baseDirectory));
-        }
+        /// <param name="baseDirectory">The base directory.</param>
+        /// <param name="fullDirectory">The full path of the directory.</param>
+        /// <returns>Returns a new <see cref="DirectoryItem"/>.</returns>
+        public static DirectoryItem FromFullPath(string baseDirectory, string fullDirectory) => new DirectoryItem(baseDirectory, GetRelative(fullDirectory, baseDirectory));
 
         /// <summary>
-        /// Creates a new directory instance from a specified base and sub directory path.
+        /// Initializes a new instance of the <see cref="DirectoryItem"/> class.
         /// </summary>
-        /// <param name="baseDirectory">The base directory</param>
-        /// <param name="subDirectory">The subdirectory</param>
+        /// <param name="baseDirectory">The base directory.</param>
+        /// <param name="subDirectory">The subdirectory.</param>
         public DirectoryItem(string baseDirectory, string subDirectory)
         {
             BaseDirectory = Path.GetFullPath(baseDirectory);
@@ -63,17 +61,17 @@ namespace Cave
         }
 
         /// <summary>
-        /// Obtains the base directory (used when searching for this file)
+        /// Gets the base directory (used when searching for this file).
         /// </summary>
         public string BaseDirectory { get; }
 
         /// <summary>
-        /// Returns the relative path.
+        /// Gets the relative path.
         /// </summary>
         public string Relative { get; }
 
         /// <summary>
-        /// Obtains the full path of the directory
+        /// Gets the full path of the directory.
         /// </summary>
         public string FullPath => Path.GetFullPath(FileSystem.Combine(BaseDirectory, Relative));
     }

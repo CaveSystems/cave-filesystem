@@ -8,50 +8,43 @@ using System.Threading.Tasks;
 namespace Cave
 {
     /// <summary>
-    /// Provides an asynchronous file finder
+    /// Provides an asynchronous file finder.
     /// </summary>
     public class DirectoryFinder
     {
-        bool m_WasStarted;
+        /// <summary>
+        /// The directory list of already found directories.
+        /// </summary>
+        readonly Queue<DirectoryItem> directoryList = new Queue<DirectoryItem>();
 
         /// <summary>
-        /// The directory list of already found directories
+        /// the comparers used to (un)select a directory.
         /// </summary>
-        Queue<DirectoryItem> m_DirectoryList = new Queue<DirectoryItem>();
+        IDirectoryFinderComparer[] comparer;
 
         /// <summary>
-        /// this variable holds the base directory used to start the search
+        /// Finder started.
         /// </summary>
-        string m_BaseDirectory;
-
-        /// <summary>
-        /// provides a directorymask used to filter the directories
-        /// </summary>
-        string m_DirectoryMask;
-
-        /// <summary>
-        /// the comparers used to (un)select a directory
-        /// </summary>
-        IDirectoryFinderComparer[] m_Comparer;
+        bool wasStarted;
 
         /// <summary>
         /// If set to true the finder returns the deepest directory first (e.g. first /tmp/some/dir then /tmp/some).
         /// </summary>
-        bool m_DeepestFirst;
+        bool deepestFirst;
 
         /// <summary>
-        /// search currently active
+        /// search currently active.
         /// </summary>
-        volatile bool m_SearchRunning;
+        volatile bool searchRunning;
 
-        void m_Recurser(DirectoryItem current)
+        void RecursiveSearch(DirectoryItem current)
         {
             try
             {
-                foreach (string fullDirectoryName in Directory.GetDirectories(current.FullPath, m_DirectoryMask))
+                foreach (string fullDirectoryName in Directory.GetDirectories(current.FullPath, DirectoryMask))
                 {
-                    DirectoryItem directory = DirectoryItem.FromFullPath(m_BaseDirectory, fullDirectoryName);
-                    foreach (IDirectoryFinderComparer comparer in m_Comparer)
+                    var directory = DirectoryItem.FromFullPath(BaseDirectory, fullDirectoryName);
+                    foreach (IDirectoryFinderComparer comparer in comparer)
                     {
                         if (!comparer.DirectoryMatches(directory))
                         {
@@ -61,28 +54,29 @@ namespace Cave
                     }
                     if (directory != null)
                     {
-                        if (m_DeepestFirst)
+                        if (deepestFirst)
                         {
-                            //recurse first
-                            m_Recurser(directory);
+                            // recursive search in directory first
+                            RecursiveSearch(directory);
                         }
-                        //then add to list
-                        while (m_SearchRunning)
+
+                        // then add items to list
+                        while (searchRunning)
                         {
                             lock (this)
                             {
-                                if (m_DirectoryList.Count < MaximumDirectoriesQueued)
+                                if (directoryList.Count < MaximumDirectoriesQueued)
                                 {
-                                    m_DirectoryList.Enqueue(directory);
+                                    directoryList.Enqueue(directory);
                                     break;
                                 }
                             }
                             Thread.Sleep(1);
                         }
-                        if (!m_DeepestFirst)
+                        if (!deepestFirst)
                         {
-                            //recurse later
-                            m_Recurser(directory);
+                            // recursive search later
+                            RecursiveSearch(directory);
                         }
                     }
                 }
@@ -94,34 +88,34 @@ namespace Cave
         }
 
         /// <summary>
-        /// runs the current search
+        /// runs the current search.
         /// </summary>
-        void m_SearchDirectories()
+        void SearchDirectories()
         {
             Thread.CurrentThread.Priority = ThreadPriority.Lowest;
             Thread.CurrentThread.IsBackground = true;
             if (VerboseMessages)
             {
-                Trace.TraceError("Starting directory search at {0}", m_BaseDirectory);
+                Trace.TraceError("Starting directory search at {0}", BaseDirectory);
             }
 
-            m_Recurser(new DirectoryItem(m_BaseDirectory, "."));
-            m_SearchRunning = false;
+            RecursiveSearch(new DirectoryItem(BaseDirectory, "."));
+            searchRunning = false;
             if (VerboseMessages)
             {
-                Trace.TraceError("Completed directory search at {0}", m_BaseDirectory);
+                Trace.TraceError("Completed directory search at {0}", BaseDirectory);
             }
         }
 
         /// <summary>
-        /// Prepares the directoryfinder with the specified comparers
+        /// Prepares the directoryfinder with the specified comparers.
         /// </summary>
-        /// <param name="baseDirectory">the base directory the search starts at</param>
-        /// <param name="directoryMask">the directory mask for subdirectories</param>
-        /// <param name="comparer">the additionally used comparers</param>
-        protected void m_Prepare(string baseDirectory, string directoryMask, params IDirectoryFinderComparer[] comparer)
+        /// <param name="baseDirectory">the base directory the search starts at.</param>
+        /// <param name="directoryMask">the directory mask for subdirectories.</param>
+        /// <param name="comparer">the additionally used comparers.</param>
+        protected void Prepare(string baseDirectory, string directoryMask, params IDirectoryFinderComparer[] comparer)
         {
-            if (m_SearchRunning)
+            if (searchRunning)
             {
                 throw new InvalidOperationException(string.Format("Search is already running!"));
             }
@@ -131,132 +125,115 @@ namespace Cave
                 throw new ArgumentNullException("baseDirectory");
             }
 
-            m_BaseDirectory = Path.GetFullPath(baseDirectory);
-            if (!Directory.Exists(m_BaseDirectory))
+            BaseDirectory = Path.GetFullPath(baseDirectory);
+            if (!Directory.Exists(BaseDirectory))
             {
                 throw new DirectoryNotFoundException();
             }
 
-            m_DirectoryMask = directoryMask;
-            m_Comparer = comparer;
-            m_WasStarted = false;
+            DirectoryMask = directoryMask;
+            this.comparer = comparer;
+            wasStarted = false;
         }
 
         /// <summary>
-        /// creates a directoryfinder thread within the specified basedirectory
+        /// Initializes a new instance of the <see cref="DirectoryFinder"/> class.
         /// </summary>
-        /// <param name="baseDirectory">the base directory the search starts at</param>
-        /// <param name="comparer">the additionally used comparers</param>
-        public DirectoryFinder(string baseDirectory, params IDirectoryFinderComparer[] comparer)
-        {
-            m_Prepare(baseDirectory, "*", comparer);
-        }
+        /// <param name="baseDirectory">the base directory the search starts at.</param>
+        /// <param name="comparer">the additionally used comparers.</param>
+        public DirectoryFinder(string baseDirectory, params IDirectoryFinderComparer[] comparer) => Prepare(baseDirectory, "*", comparer);
 
         /// <summary>
-        /// creates a directoryfinder thread within the specified basedirectory
+        /// Initializes a new instance of the <see cref="DirectoryFinder"/> class.
         /// </summary>
-        /// <param name="baseDirectory">the base directory the search starts at</param>
-        /// <param name="directoryMask">the directory mask to apply</param>
-        /// <param name="comparer">the additionally used comparers</param>
-        public DirectoryFinder(string baseDirectory, string directoryMask, params IDirectoryFinderComparer[] comparer)
-        {
-            m_Prepare(baseDirectory, directoryMask, comparer);
-        }
+        /// <param name="baseDirectory">the base directory the search starts at.</param>
+        /// <param name="directoryMask">the directory mask to apply.</param>
+        /// <param name="comparer">the additionally used comparers.</param>
+        public DirectoryFinder(string baseDirectory, string directoryMask, params IDirectoryFinderComparer[] comparer) => Prepare(baseDirectory, directoryMask, comparer);
 
         /// <summary>
         /// Retrieves the next file found.
         /// This function waits until a file is found or the search thread completes without finding any further items.
         /// </summary>
-        /// <returns>Returns the next file found or null if the finder completed without finding any further files</returns>
+        /// <returns>Returns the next file found or null if the finder completed without finding any further files.</returns>
         public DirectoryItem GetNext()
         {
-            if (!m_SearchRunning && !m_WasStarted)
+            if (!searchRunning && !wasStarted)
             {
-                m_WasStarted = true;
-                m_SearchRunning = true;
-                Task.Factory.StartNew(m_SearchDirectories);
+                wasStarted = true;
+                searchRunning = true;
+                Task.Factory.StartNew(SearchDirectories);
             }
-            while (m_SearchRunning)
+            while (searchRunning)
             {
                 lock (this)
                 {
-                    if (m_DirectoryList.Count > 0)
+                    if (directoryList.Count > 0)
                     {
-                        return m_DirectoryList.Dequeue();
+                        return directoryList.Dequeue();
                     }
                 }
                 Thread.Sleep(1);
             }
             lock (this)
             {
-                if (m_DirectoryList.Count > 0)
+                if (directoryList.Count > 0)
                 {
-                    return m_DirectoryList.Dequeue();
+                    return directoryList.Dequeue();
                 }
             }
             return null;
         }
 
         /// <summary>
-        /// If set to true the finder returns the deepest directory first (e.g. first /tmp/some/dir then /tmp/some).
+        /// Gets or sets a value indicating whether the finder returns the deepest directory first (e.g. first /tmp/some/dir then /tmp/some).
         /// </summary>
         public bool DeepestFirst
         {
-            get => m_DeepestFirst;
+            get => deepestFirst;
             set
             {
-                if (m_WasStarted)
+                if (wasStarted)
                 {
                     throw new InvalidOperationException(string.Format("Finder was already started!"));
                 }
 
-                m_DeepestFirst = value;
+                deepestFirst = value;
             }
         }
 
         /// <summary>
-        /// Obtains the base directory of the search
+        /// Gets the base directory of the search.
         /// </summary>
-        public string BaseDirectory => m_BaseDirectory;
+        public string BaseDirectory { get; private set; }
 
         /// <summary>
-        /// Obtains whether the filefinder has completed the search task and all items have been read
+        /// Gets a directorymask used to filter the directories.
         /// </summary>
-        public bool Completed
-        {
-            get
-            {
-                if (!m_WasStarted)
-                {
-                    return false;
-                }
-
-                if (m_SearchRunning)
-                {
-                    return false;
-                }
-
-                return true;
-            }
-        }
+        public string DirectoryMask { get; private set; }
 
         /// <summary>
-        /// Gets / sets the maximum number of directories in queue
+        /// Gets a value indicating whether the filefinder has completed the search task and all items have been read.
+        /// </summary>
+        public bool Completed => !wasStarted ? false : !searchRunning;
+
+        /// <summary>
+        /// Gets or sets the maximum number of directories in queue.
         /// </summary>
         public int MaximumDirectoriesQueued { get; set; } = 20;
 
         /// <summary>
-        /// Closes the finder
+        /// Closes the finder.
         /// </summary>
         public void Close()
         {
             lock (this)
             {
-                m_SearchRunning = false;
+                searchRunning = false;
             }
         }
 
-        /// <summary>Print verbose debug messages</summary>
+        /// <summary>Print verbose debug messages.</summary>
 #if DEBUG
         public bool VerboseMessages = true;
 #else

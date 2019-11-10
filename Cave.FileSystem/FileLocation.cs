@@ -4,17 +4,14 @@ using System.IO;
 namespace Cave
 {
     /// <summary>
-    /// Provides access to a file location
+    /// Provides access to a file location.
     /// </summary>
     public class FileLocation
     {
         /// <summary>Performs an implicit conversion from <see cref="FileLocation"/> to <see cref="string"/>.</summary>
         /// <param name="location">The location.</param>
         /// <returns>The result of the conversion.</returns>
-        public static implicit operator string(FileLocation location)
-        {
-            return location.ToString();
-        }
+        public static implicit operator string(FileLocation location) => location.ToString();
 
         /// <summary>Gets or sets the root.</summary>
         /// <value>The root.</value>
@@ -65,11 +62,9 @@ namespace Cave
         /// <returns>A <see cref="string" /> that represents this instance.</returns>
         public override string ToString()
         {
-            if (Root == RootLocation.Program)
-            {
-                return FileSystem.Combine(GetRoot(), SubFolder, FileName + Extension);
-            }
-            return FileSystem.Combine(GetRoot(), CompanyName, SubFolder, FileName + Extension);
+            return Root == RootLocation.Program
+                ? FileSystem.Combine(GetRoot(), SubFolder, FileName + Extension)
+                : FileSystem.Combine(GetRoot(), CompanyName, SubFolder, FileName + Extension);
         }
 
         /// <summary>Gets the folder.</summary>
@@ -78,16 +73,14 @@ namespace Cave
         {
             get
             {
-                if (Root == RootLocation.Program)
-                {
-                    return FileSystem.Combine(GetRoot(), SubFolder);
-                }
-                return FileSystem.Combine(GetRoot(), CompanyName, SubFolder);
+                return Root == RootLocation.Program
+                    ? FileSystem.Combine(GetRoot(), SubFolder)
+                    : FileSystem.Combine(GetRoot(), CompanyName, SubFolder);
             }
         }
 
         /// <summary>
-        /// Gets the program deirectory
+        /// Gets the program deirectory.
         /// </summary>
         public string ProgramDirectory => Path.GetDirectoryName(MainAssembly.Get().GetAssemblyFilePath());
 

@@ -4,17 +4,17 @@ using System.IO;
 namespace Cave
 {
     /// <summary>
-    /// Provides a file path string handler
+    /// Provides a file path string handler.
     /// </summary>
     public sealed class FileItem
     {
         #region static functionality
 
         /// <summary>
-        /// Obtains a relative path
+        /// Obtains a relative path.
         /// </summary>
-        /// <param name="fullPath">The full path of the file / directory</param>
-        /// <param name="basePath">The base path of the file / directory</param>
+        /// <param name="fullPath">The full path of the file / directory.</param>
+        /// <param name="basePath">The base path of the file / directory.</param>
         /// <returns></returns>
         public static string GetRelative(string fullPath, string basePath)
         {
@@ -42,13 +42,12 @@ namespace Cave
             return "." + Path.DirectorySeparatorChar + string.Join(Path.DirectorySeparatorChar.ToString(), relative, baseCheck.Length, relative.Length - baseCheck.Length);
         }
 
-
         /// <summary>
         /// Creates a new file instance from a specified base path and the full path to the file. (The
         /// subdirectories will be extracted.)
         /// </summary>
-        /// <param name="baseDirectory">The base file</param>
-        /// <param name="fullFilePath">The full path of the file</param>
+        /// <param name="baseDirectory">The base file.</param>
+        /// <param name="fullFilePath">The full path of the file.</param>
         /// <returns></returns>
         public static FileItem FromFullPath(string baseDirectory, string fullFilePath)
         {
@@ -57,26 +56,18 @@ namespace Cave
         }
 
         /// <summary>
-        /// Converts the fileitem to string containing the full path
+        /// Converts the fileitem to string containing the full path.
         /// </summary>
         /// <param name="file"></param>
         /// <returns></returns>
-        public static implicit operator string(FileItem file)
-        {
-            if (file == null)
-            {
-                return null;
-            }
-
-            return file.FullPath;
-        }
+        public static implicit operator string(FileItem file) => file?.FullPath;
         #endregion
 
         /// <summary>
-        /// Creates a new file instance from a specified base and sub directory path and fileName.
+        /// Initializes a new instance of the <see cref="FileItem"/> class.
         /// </summary>
-        /// <param name="baseDirectory">The base directory</param>
-        /// <param name="subDirectoryAndName">The subdirectory and name of the file</param>
+        /// <param name="baseDirectory">The base directory.</param>
+        /// <param name="subDirectoryAndName">The subdirectory and name of the file.</param>
         public FileItem(string baseDirectory, string subDirectoryAndName)
         {
             BaseDirectory = Path.GetFullPath(baseDirectory);
@@ -85,7 +76,7 @@ namespace Cave
         }
 
         /// <summary>
-        /// Obtains the base directory (used when searching for this file)
+        /// Obtains the base directory (used when searching for this file).
         /// </summary>
         public string BaseDirectory { get; }
 
@@ -95,7 +86,7 @@ namespace Cave
         public string Relative { get; }
 
         /// <summary>
-        /// Obtains the full path of the file
+        /// Obtains the full path of the file.
         /// </summary>
         public string FullPath { get; }
 
@@ -119,12 +110,9 @@ namespace Cave
         }
 
         /// <summary>
-        /// Obtains the full path
+        /// Obtains the full path.
         /// </summary>
         /// <returns></returns>
-        public override string ToString()
-        {
-            return FullPath;
-        }
+        public override string ToString() => FullPath;
     }
 }

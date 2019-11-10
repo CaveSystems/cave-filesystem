@@ -3,7 +3,7 @@
 namespace Cave
 {
     /// <summary>
-    /// Provides directory item event arguments
+    /// Provides directory item event arguments.
     /// </summary>
     /// <seealso cref="System.EventArgs" />
     public sealed class DirectoryItemEventArgs : EventArgs
@@ -14,9 +14,6 @@ namespace Cave
 
         /// <summary>Initializes a new instance of the <see cref="DirectoryItemEventArgs"/> class.</summary>
         /// <param name="dir">The dir.</param>
-        public DirectoryItemEventArgs(DirectoryItem dir)
-        {
-            Directory = dir;
-        }
+        public DirectoryItemEventArgs(DirectoryItem dir) => Directory = dir;
     }
 }

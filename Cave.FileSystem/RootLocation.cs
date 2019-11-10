@@ -1,7 +1,7 @@
 ﻿namespace Cave
 {
     /// <summary>
-    /// Available root locations
+    /// Available root locations.
     /// </summary>
     public enum RootLocation
     {

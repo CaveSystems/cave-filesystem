@@ -7,31 +7,28 @@ using System.Threading.Tasks;
 namespace Cave
 {
     /// <summary>
-    /// Provides an asynchronous file finder
+    /// Provides an asynchronous file finder.
     /// </summary>
     public sealed class FileFinder : IDisposable
     {
-        const string Name = "FileFinder";
-        Task m_SearchTask;
-        string m_BaseDirectory;
-        string m_FileMask;
-        string m_DirectoryMask;
-        IFileFinderComparer[] m_Comparer;
-        bool m_Exit;
+        Task searchTask;
+        IFileFinderComparer[] comparer;
+        bool exit;
 
-        /// <summary>Print verbose debug messages</summary>
+        /// <summary>Print verbose debug messages.</summary>
 #if DEBUG
         public bool VerboseMessages = true;
 #else
         public bool VerboseMessages = false;
 #endif
+
         /// <summary>
-        /// the maximum number of files in queue
+        /// Gets or sets the maximum number of files in queue.
         /// </summary>
         public int MaximumFilesQueued { get; set; }
 
         /// <summary>
-        /// Obtains the number of files seen while searching
+        /// Gets the number of files seen while searching.
         /// </summary>
         public int FilesSeen { get; private set; }
 
@@ -40,13 +37,23 @@ namespace Cave
         public int FilesDone { get; private set; }
 
         /// <summary>
-        /// Obtains the number of directories seen while searching
+        /// Gets the number of directories seen while searching.
         /// </summary>
         public int DirectoriesSeen { get; private set; }
 
         /// <summary>Gets the directories done.</summary>
         /// <value>The directories done.</value>
         public int DirectoriesDone { get; private set; }
+
+        /// <summary>
+        /// Gets the file mask applied while searching.
+        /// </summary>
+        public string FileMask { get; private set; }
+
+        /// <summary>
+        /// Gets the directory mask applied while searching.
+        /// </summary>
+        public string DirectoryMask { get; private set; }
 
         /// <summary>Gets the file system entries seen.</summary>
         /// <value>The file system entries seen.</value>
@@ -68,23 +75,22 @@ namespace Cave
         public event EventHandler<ErrorEventArgs> Error;
 
         /// <summary>
-        /// runs the current search
+        /// runs the current search.
         /// </summary>
         void SearchDirectories()
         {
             Thread.CurrentThread.Priority = ThreadPriority.Lowest;
             Thread.CurrentThread.IsBackground = true;
 
-            Queue<Task> queue = new Queue<Task>();
+            var queue = new Queue<Task>();
             DirectoriesSeen = 1;
             {
-                Stack<string> directoryWalkerList = new Stack<string>();
-                directoryWalkerList.Push(m_BaseDirectory);
-                //directoryList.Push(m_BaseDirectory);
+                var directoryWalkerList = new Stack<string>();
+                directoryWalkerList.Push(BaseDirectory);
                 int directoriesDone = 0;
                 while (directoryWalkerList.Count > 0)
                 {
-                    if (m_Exit)
+                    if (exit)
                     {
                         break;
                     }
@@ -102,29 +108,29 @@ namespace Cave
                         Task.WaitAny(queue.ToArray());
                     }
 
-                    queue.Enqueue(Task.Factory.StartNew(delegate
+                    queue.Enqueue(Task.Factory.StartNew(() =>
                     {
                         SearchFiles(currentDirectory);
-                        if (m_Exit)
+                        if (exit)
                         {
                             return;
                         }
 
-                        FoundDirectory?.Invoke(this, new DirectoryItemEventArgs(DirectoryItem.FromFullPath(m_BaseDirectory, currentDirectory)));
+                        FoundDirectory?.Invoke(this, new DirectoryItemEventArgs(DirectoryItem.FromFullPath(BaseDirectory, currentDirectory)));
                     }));
 
                     directoriesDone++;
                     try
                     {
-                        foreach (string directory in Directory.GetDirectories(currentDirectory, m_DirectoryMask))
+                        foreach (string directory in Directory.GetDirectories(currentDirectory, DirectoryMask))
                         {
-                            if (m_Exit)
+                            if (exit)
                             {
                                 break;
                             }
 
                             DirectoriesSeen++;
-                            directoryWalkerList.Push(FileSystem.Combine(m_BaseDirectory, directory));
+                            directoryWalkerList.Push(FileSystem.Combine(BaseDirectory, directory));
                         }
                     }
                     catch (Exception ex)
@@ -140,15 +146,15 @@ namespace Cave
         {
             try
             {
-                foreach (string fullFileName in Directory.GetFiles(currentDirectory, m_FileMask))
+                foreach (string fullFileName in Directory.GetFiles(currentDirectory, FileMask))
                 {
-                    if (m_Exit)
+                    if (exit)
                     {
                         return;
                     }
 
-                    FileItem file = FileItem.FromFullPath(m_BaseDirectory, fullFileName);
-                    foreach (IFileFinderComparer comparer in m_Comparer)
+                    var file = FileItem.FromFullPath(BaseDirectory, fullFileName);
+                    foreach (IFileFinderComparer comparer in comparer)
                     {
                         if (!comparer.FileMatches(file))
                         {
@@ -170,122 +176,102 @@ namespace Cave
         }
 
         /// <summary>
-        /// Prepares the filefinder with the specified comparers
+        /// Prepares the filefinder with the specified comparers.
         /// </summary>
-        /// <param name="baseDirectory">the base directory the search starts at</param>
-        /// <param name="directoryMask">the directory mask for subdirectories</param>
-        /// <param name="fileMask">the file mask</param>
-        /// <param name="comparer">the additionally used comparers</param>
+        /// <param name="baseDirectory">Base directory to start the search at.</param>
+        /// <param name="directoryMask">Directory mask to use during search.</param>
+        /// <param name="fileMask">File mask to use during search.</param>
+        /// <param name="comparer">Comparer to use during search.</param>
         void Prepare(string baseDirectory, string directoryMask, string fileMask, params IFileFinderComparer[] comparer)
         {
-            if (baseDirectory == null)
-            {
-                throw new ArgumentNullException("baseDirectory");
-            }
-
-            m_BaseDirectory = baseDirectory;
-            if (!Directory.Exists(m_BaseDirectory))
+            BaseDirectory = baseDirectory ?? throw new ArgumentNullException("baseDirectory");
+            if (!Directory.Exists(BaseDirectory))
             {
                 throw new DirectoryNotFoundException();
             }
 
-            m_FileMask = fileMask;
-            m_DirectoryMask = directoryMask;
-            m_Comparer = comparer;
+            FileMask = fileMask;
+            DirectoryMask = directoryMask;
+            this.comparer = comparer;
         }
 
         /// <summary>
-        /// creates a filefinder thread within the specified basedirectory
+        /// Initializes a new instance of the <see cref="FileFinder"/> class.
         /// </summary>
-        /// <param name="baseDirectory">the base directory the search starts at</param>
-        /// <param name="comparer">the additionally used comparers</param>
-        public FileFinder(string baseDirectory, params IFileFinderComparer[] comparer)
-        {
-            Prepare(baseDirectory, "*", "*", comparer);
-        }
+        /// <param name="baseDirectory">Base directory to start the search at.</param>
+        /// <param name="comparer">Comparer to use during search.</param>
+        public FileFinder(string baseDirectory, params IFileFinderComparer[] comparer) => Prepare(baseDirectory, "*", "*", comparer);
 
         /// <summary>
-        /// creates a filefinder thread within the specified basedirectory
+        /// Initializes a new instance of the <see cref="FileFinder"/> class.
         /// </summary>
-        /// <param name="baseDirectory"></param>
-        /// <param name="directoryMask"></param>
-        /// <param name="fileMask"></param>
-        /// <param name="comparer"></param>
-        public FileFinder(string baseDirectory, string directoryMask, string fileMask, params IFileFinderComparer[] comparer)
-        {
-            Prepare(baseDirectory, directoryMask, fileMask, comparer);
-        }
+        /// <param name="baseDirectory">Base directory to start the search at.</param>
+        /// <param name="directoryMask">Directory mask to use during search.</param>
+        /// <param name="fileMask">File mask to use during search.</param>
+        /// <param name="comparer">Comparer to use during search.</param>
+        public FileFinder(string baseDirectory, string directoryMask, string fileMask, params IFileFinderComparer[] comparer) => Prepare(baseDirectory, directoryMask, fileMask, comparer);
 
         /// <summary>Starts the search task.</summary>
-        /// <exception cref="InvalidOperationException"></exception>
+        /// <exception cref="InvalidOperationException">Search is already running.</exception>
         public void Start()
         {
-            if (m_SearchTask != null)
+            if (searchTask != null)
             {
-                throw new InvalidOperationException(string.Format("Search is already running!"));
+                throw new InvalidOperationException("Search is already running!");
             }
 
-            m_SearchTask = Task.Factory.StartNew(SearchDirectories);
+            searchTask = Task.Factory.StartNew(SearchDirectories);
         }
 
         /// <summary>Waits for completion of the search task.</summary>
-        /// <exception cref="InvalidOperationException"></exception>
+        /// <exception cref="InvalidOperationException">Search was not started!.</exception>
         public void Wait()
         {
-            if (m_SearchTask == null)
+            if (searchTask == null)
             {
-                throw new InvalidOperationException(string.Format("Search was not started!"));
+                throw new InvalidOperationException("Search was not started!");
             }
 
-            m_SearchTask.Wait();
+            searchTask.Wait();
         }
 
         /// <summary>
-        /// Obtains the base directory of the search
+        /// Gets the base directory of the search.
         /// </summary>
-        public string BaseDirectory => m_BaseDirectory;
+        public string BaseDirectory { get; private set; }
 
         /// <summary>
-        /// Obtains whether the filefinder has completed the search task and all items have been read
+        /// Gets a value indicating whether the filefinder has completed the search task and all items have been read.
         /// </summary>
-        public bool Completed => m_SearchTask.IsCompleted;
+        public bool Completed => searchTask.IsCompleted;
 
         /// <summary>Stops this instance.</summary>
-        public void Stop()
-        {
-            m_Exit = true;
-        }
+        public void Stop() => exit = true;
 
         /// <summary>
-        /// Closes the finder
+        /// Closes the finder.
         /// </summary>
         public void Close()
         {
             lock (this)
             {
-                m_SearchTask.Wait();
+                searchTask.Wait();
             }
         }
 
-        /// <summary>Gets the name of the log source.</summary>
-        /// <value>The name of the log source.</value>
-        public string LogSourceName => Name + " " + m_BaseDirectory;
-
         /// <summary>Releases the unmanaged resources used by this instance and optionally releases the managed resources.</summary>
         /// <param name="disposing">true to release both managed and unmanaged resources; false to release only unmanaged resources.</param>
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2213:DisposableFieldsShouldBeDisposed", MessageId = "m_FileEvent")]
         void Dispose(bool disposing)
         {
-            //base.Dispose(disposing);
             if (disposing)
             {
-                m_Exit = true;
-                m_SearchTask.Dispose();
+                exit = true;
+                searchTask.Dispose();
             }
         }
 
         /// <summary>
-        /// Releases all resources used by the this instance
+        /// Releases all resources used by the this instance.
         /// </summary>
         public void Dispose()
         {

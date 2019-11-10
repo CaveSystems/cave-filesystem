@@ -7,68 +7,60 @@ using System.Threading.Tasks;
 namespace Cave
 {
     /// <summary>
-    /// Provides an asynchronous file finder
+    /// Provides an asynchronous file finder.
     /// </summary>
     public sealed class FileFinder2 : IDisposable
     {
-        string m_BaseDirectory;
-        string m_FileMask;
-        string m_DirectoryMask;
-        IFileFinderComparer[] m_Comparer;
-        LinkedList<FileItem> m_FileList = new LinkedList<FileItem>();
-        LinkedList<string> m_DirectoryList = new LinkedList<string>();
+        readonly LinkedList<FileItem> fileList = new LinkedList<FileItem>();
+        readonly LinkedList<string> directoryList = new LinkedList<string>();
+        IFileFinderComparer[] comparer;
 
-        void m_Start(string baseDirectory, string directoryMask, string fileMask, params IFileFinderComparer[] comparer)
+        void Start(string baseDirectory, string directoryMask, string fileMask, params IFileFinderComparer[] comparer)
         {
             if (DirectorySearchRunning || FileSearchRunning)
             {
-                throw new InvalidOperationException(string.Format("Search is already running!"));
+                throw new InvalidOperationException("Search is already running!");
             }
 
-            if (baseDirectory == null)
-            {
-                throw new ArgumentNullException("baseDirectory");
-            }
-
-            m_BaseDirectory = baseDirectory;
-            if (!Directory.Exists(m_BaseDirectory))
+            BaseDirectory = baseDirectory ?? throw new ArgumentNullException("baseDirectory");
+            if (!Directory.Exists(BaseDirectory))
             {
                 throw new DirectoryNotFoundException();
             }
 
-            m_FileMask = fileMask;
-            m_DirectoryMask = directoryMask;
-            m_Comparer = comparer;
+            FileMask = fileMask;
+            DirectoryMask = directoryMask;
+            this.comparer = comparer;
             DirectorySearchRunning = true;
             FileSearchRunning = true;
-            Task.Factory.StartNew(m_SearchDirectories);
-            Task.Factory.StartNew(m_SearchFiles);
+            Task.Factory.StartNew(SearchDirectories);
+            Task.Factory.StartNew(SearchFiles);
         }
 
-        void m_SearchFiles()
+        void SearchFiles()
         {
             while (true)
             {
                 string currentDir;
-                lock (m_DirectoryList)
+                lock (directoryList)
                 {
-                    while (m_DirectoryList.Count == 0)
+                    while (directoryList.Count == 0)
                     {
                         if (!DirectorySearchRunning)
                         {
                             FileSearchRunning = false;
                             return;
                         }
-                        Monitor.Wait(m_DirectoryList);
+                        Monitor.Wait(directoryList);
                     }
-                    currentDir = m_DirectoryList.First.Value;
-                    m_DirectoryList.RemoveFirst();
+                    currentDir = directoryList.First.Value;
+                    directoryList.RemoveFirst();
                 }
 
-                foreach (string fileName in Directory.GetFiles(currentDir, m_FileMask))
+                foreach (string fileName in Directory.GetFiles(currentDir, FileMask))
                 {
-                    FileItem file = FileItem.FromFullPath(m_BaseDirectory, fileName);
-                    foreach (IFileFinderComparer comparer in m_Comparer)
+                    var file = FileItem.FromFullPath(BaseDirectory, fileName);
+                    foreach (IFileFinderComparer comparer in comparer)
                     {
                         if (!comparer.FileMatches(file))
                         {
@@ -81,18 +73,18 @@ namespace Cave
                     {
                         while (FileSearchRunning)
                         {
-                            lock (m_FileList)
+                            lock (fileList)
                             {
-                                if ((MaximumFilesQueued <= 0) || (m_FileList.Count < MaximumFilesQueued))
+                                if ((MaximumFilesQueued <= 0) || (fileList.Count < MaximumFilesQueued))
                                 {
                                     FilesSeen++;
-                                    m_FileList.AddLast(file);
-                                    Monitor.Pulse(m_FileList);
+                                    fileList.AddLast(file);
+                                    Monitor.Pulse(fileList);
                                     break;
                                 }
                                 else
                                 {
-                                    Monitor.Wait(m_FileList);
+                                    Monitor.Wait(fileList);
                                 }
                             }
                         }
@@ -102,22 +94,22 @@ namespace Cave
             throw new Exception("THIS SHOULD NEVER HAPPEN");
         }
 
-        void m_SearchDirectories()
+        void SearchDirectories()
         {
-            LinkedList<string> list = new LinkedList<string>();
-            list.AddFirst(m_BaseDirectory);
+            var list = new LinkedList<string>();
+            list.AddFirst(BaseDirectory);
             while (list.Count > 0)
             {
                 string currentDir = list.First.Value;
-                lock (m_DirectoryList)
+                lock (directoryList)
                 {
-                    m_DirectoryList.AddLast(currentDir);
-                    Monitor.Pulse(m_DirectoryList);
+                    directoryList.AddLast(currentDir);
+                    Monitor.Pulse(directoryList);
                 }
                 list.RemoveFirst();
                 DirectoriesSeen++;
 
-                foreach (string dir in Directory.GetDirectories(currentDir, m_DirectoryMask))
+                foreach (string dir in Directory.GetDirectories(currentDir, DirectoryMask))
                 {
                     list.AddLast(dir);
                 }
@@ -125,7 +117,7 @@ namespace Cave
             DirectorySearchRunning = false;
         }
 
-        /// <summary>Print verbose debug messages</summary>
+        /// <summary>Print verbose debug messages.</summary>
 #if DEBUG
         public bool VerboseMessages = true;
 #else
@@ -133,7 +125,7 @@ namespace Cave
 #endif
 
         /// <summary>
-        /// the maximum number of files in queue
+        /// Gets or sets the maximum number of files in queue.
         /// </summary>
         public int MaximumFilesQueued { get; set; }
 
@@ -148,17 +140,17 @@ namespace Cave
         public bool FileSearchRunning { get; private set; }
 
         /// <summary>
-        /// Obtains the number of files seen while searching
+        /// Gets the number of files seen while searching.
         /// </summary>
         public int FilesSeen { get; private set; }
 
         /// <summary>
-        /// Obtains the number of directories seen while searching
+        /// Gets the number of directories seen while searching.
         /// </summary>
         public int DirectoriesSeen { get; private set; }
 
         /// <summary>
-        /// Obtains the current progress (search and reading)
+        /// Gets the current progress (search and reading).
         /// </summary>
         public float Progress
         {
@@ -166,82 +158,77 @@ namespace Cave
             {
                 if (DirectorySearchRunning)
                 {
-                    lock (m_DirectoryList)
+                    lock (directoryList)
                     {
-                        return (m_DirectoryList.Count / DirectoriesSeen) * 0.2f;
+                        return directoryList.Count / DirectoriesSeen * 0.2f;
                     }
                 }
 
                 if (FileSearchRunning)
                 {
-                    lock (m_FileList)
+                    lock (fileList)
                     {
-                        return 0.2f + (m_FileList.Count / FilesSeen) * 0.4f;
+                        return 0.2f + (fileList.Count / FilesSeen * 0.4f);
                     }
                 }
 
-                lock (m_FileList)
+                lock (fileList)
                 {
-                    return 0.6f + (m_FileList.Count / FilesSeen) * 0.4f;
+                    return 0.6f + (fileList.Count / FilesSeen * 0.4f);
                 }
             }
         }
 
         /// <summary>
-        /// creates a filefinder thread within the specified basedirectory
+        /// Initializes a new instance of the <see cref="FileFinder2"/> class.
         /// </summary>
-        /// <param name="baseDirectory">the base directory the search starts at</param>
-        /// <param name="comparer">the additionally used comparers</param>
-        public FileFinder2(string baseDirectory, params IFileFinderComparer[] comparer)
-        {
-            m_Start(baseDirectory, "*", "*", comparer);
-        }
+        /// <param name="baseDirectory">Base directory to start the search at.</param>
+        /// <param name="comparer">Comparer to use during search.</param>
+        public FileFinder2(string baseDirectory, params IFileFinderComparer[] comparer) => Start(baseDirectory, "*", "*", comparer);
 
         /// <summary>
-        /// creates a filefinder thread within the specified basedirectory
+        /// Initializes a new instance of the <see cref="FileFinder2"/> class.
         /// </summary>
-        /// <param name="baseDirectory"></param>
-        /// <param name="directoryMask"></param>
-        /// <param name="fileMask"></param>
-        /// <param name="comparer"></param>
-        public FileFinder2(string baseDirectory, string directoryMask, string fileMask, params IFileFinderComparer[] comparer)
-        {
-            m_Start(baseDirectory, directoryMask, fileMask, comparer);
-        }
+        /// <param name="baseDirectory">Base directory to start the search at.</param>
+        /// <param name="directoryMask">Directory mask to use during search.</param>
+        /// <param name="fileMask">File mask to use during search.</param>
+        /// <param name="comparer">Comparer to use during search.</param>
+        public FileFinder2(string baseDirectory, string directoryMask, string fileMask, params IFileFinderComparer[] comparer) => Start(baseDirectory, directoryMask, fileMask, comparer);
 
         /// <summary>
         /// Retrieves all files already found. This may called repeatedly until Completed==true.
         /// </summary>
-        /// <returns></returns>
+        /// <returns>Returns (dequeues) all files already found.</returns>
         public FileItem[] Get()
         {
             lock (this)
             {
-                FileItem[] items = new FileItem[m_FileList.Count];
-                m_FileList.CopyTo(items, 0);
-                m_FileList.Clear();
+                var items = new FileItem[fileList.Count];
+                fileList.CopyTo(items, 0);
+                fileList.Clear();
                 return items;
             }
         }
 
         /// <summary>
-        /// Retrieves all files already found. This may called repeatedly until Completed==true.
+        /// Retrieves (dequeues) all files already found. This may called repeatedly until Completed==true.
         /// </summary>
-        /// <returns></returns>
+        /// <param name="maximum">Maximum number of items to return.</param>
+        /// <returns>Returns an array of files.</returns>
         public FileItem[] Get(int maximum)
         {
             lock (this)
             {
-                List<FileItem> result = new List<FileItem>(maximum);
-                if (m_FileList.Count < maximum)
+                var result = new List<FileItem>(maximum);
+                if (fileList.Count < maximum)
                 {
-                    maximum = m_FileList.Count;
+                    maximum = fileList.Count;
                 }
 
                 for (int i = 0; i < maximum; i++)
                 {
-                    result.Add(m_FileList.First.Value);
-                    m_FileList.RemoveFirst();
+                    result.Add(fileList.First.Value);
+                    fileList.RemoveFirst();
                 }
                 return result.ToArray();
             }
@@ -251,32 +238,33 @@ namespace Cave
         /// Retrieves the next file found.
         /// This function waits until a file is found or the search thread completes without finding any further items.
         /// </summary>
-        /// <returns>Returns the next file found or null if the finder completed without finding any further files</returns>
+        /// <param name="waitAction">An action to call when entering wait for next search results.</param>
+        /// <returns>Returns the next file found or null if the finder completed without finding any further files.</returns>
         public FileItem GetNext(Action waitAction = null)
         {
             while (FileSearchRunning)
             {
-                lock (m_FileList)
+                lock (fileList)
                 {
-                    if (m_FileList.Count > 0)
+                    if (fileList.Count > 0)
                     {
-                        FileItem result = m_FileList.First.Value;
-                        m_FileList.RemoveFirst();
+                        FileItem result = fileList.First.Value;
+                        fileList.RemoveFirst();
                         return result;
                     }
                     if (waitAction == null)
                     {
-                        Monitor.Wait(m_FileList);
+                        Monitor.Wait(fileList);
                     }
                 }
                 waitAction?.Invoke();
             }
-            lock (m_FileList)
+            lock (fileList)
             {
-                if (m_FileList.Count > 0)
+                if (fileList.Count > 0)
                 {
-                    FileItem result = m_FileList.First.Value;
-                    m_FileList.RemoveFirst();
+                    FileItem result = fileList.First.Value;
+                    fileList.RemoveFirst();
                     return result;
                 }
             }
@@ -284,57 +272,58 @@ namespace Cave
         }
 
         /// <summary>
-        /// Obtains the base directory of the search
+        /// Gets the file mask applied while searching.
         /// </summary>
-        public string BaseDirectory => m_BaseDirectory;
+        public string FileMask { get; private set; }
 
         /// <summary>
-        /// Obtains whether the filefinder has completed the search task and all items have been read
+        /// Gets the directory mask applied while searching.
         /// </summary>
-        public bool Completed
-        {
-            get
-            {
-                if (FileSearchRunning)
-                {
-                    return false;
-                }
+        public string DirectoryMask { get; private set; }
 
-                return FilesQueued == 0;
-            }
+        /// <summary>
+        /// Gets the base directory of the search.
+        /// </summary>
+        public string BaseDirectory { get; private set; }
+
+        /// <summary>
+        /// Gets a value indicating whether the filefinder has completed the search task and all items have been read.
+        /// </summary>
+        public bool Completed => FileSearchRunning ? false : FilesQueued == 0;
+
+        /// <summary>
+        /// Gets the number of queued files.
+        /// </summary>
+        public int FilesQueued
+        {
+            get { lock (fileList) { return fileList.Count; } }
         }
 
         /// <summary>
-        /// Obtains the number of queued files
-        /// </summary>
-        public int FilesQueued { get { lock (m_FileList) { return m_FileList.Count; } } }
-
-
-        /// <summary>
-        /// Closes the finder
+        /// Closes the finder.
         /// </summary>
         public void Close()
         {
             DirectorySearchRunning = false;
             FileSearchRunning = false;
-            lock (m_FileList) { m_FileList.Clear(); Monitor.PulseAll(m_FileList); }
-            lock (m_DirectoryList) { m_DirectoryList.Clear(); Monitor.PulseAll(m_DirectoryList); }
-        }
-
-        /// <summary>Releases the unmanaged resources used by this instance and optionally releases the managed resources.</summary>
-        /// <param name="disposing">true to release both managed and unmanaged resources; false to release only unmanaged resources.</param>
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2213:DisposableFieldsShouldBeDisposed", MessageId = "m_FileEvent")]
-        void Dispose(bool disposing)
-        {
-            Close();
+            lock (fileList)
+            {
+                fileList.Clear();
+                Monitor.PulseAll(fileList);
+            }
+            lock (directoryList)
+            {
+                directoryList.Clear();
+                Monitor.PulseAll(directoryList);
+            }
         }
 
         /// <summary>
-        /// Releases all resources used by the this instance
+        /// Releases all resources used by the this instance.
         /// </summary>
         public void Dispose()
         {
-            Dispose(true);
+            Close();
             GC.SuppressFinalize(this);
         }
     }
